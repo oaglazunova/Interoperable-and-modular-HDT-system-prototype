@@ -10,6 +10,10 @@ response = requests.request("GET", url, headers=headers, data=payload)
 
 if __name__ == "__main__":
     parsed_metrics=player_types.parse_json(response)
+    #parsed_metrics=player_types.parse_json_try(response)
     parsed_metrics_cleaned=player_types.remove_nan(parsed_metrics)
     metrics_overview=player_types.manipulate_initial_metrics(parsed_metrics_cleaned)
-    print(metrics_overview)
+    metrics_overview_normalized=player_types.normalize_metrics(metrics_overview)
+    #print(metrics_overview_normalized)
+    player_types_labels=player_types.get_player_types(metrics_overview_normalized)
+    print(player_types_labels)
