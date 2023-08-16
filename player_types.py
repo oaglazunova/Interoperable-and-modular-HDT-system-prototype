@@ -1,9 +1,10 @@
 import json
 from statistics import mean, pstdev
 from sklearn.preprocessing import MinMaxScaler
+from datetime import datetime
 
 
-def parse_json(response) -> dict:
+def parse_json(response, id_latest_record) -> dict:
     metrics_per_session = {
         "SCORES": [],  # each position of the list will represent the score achieved after a playthrough
         "PLAYTIMES": [],  # each position of the list will represent how long a session took
@@ -17,48 +18,67 @@ def parse_json(response) -> dict:
     # print(parsed_response[-1]) #last record
 
     for record in parsed_response:
-        try:
-            metrics_per_session["SCORES"].append(
-                int(record["propertyInstances"][0]["value"])
-            )
-        except:
-            metrics_per_session["SCORES"].append("NaN")
+        if record["id"] > id_latest_record:
+            try:
+                metrics_per_session["SCORES"].append(
+                    int(record["propertyInstances"][0]["value"])
+                )
+            except:
+                metrics_per_session["SCORES"].append("NaN")
 
-        try:
-            metrics_per_session["PLAYTIMES"].append(
-                int(record["propertyInstances"][1]["value"])
-            )
-        except:
-            metrics_per_session["PLAYTIMES"].append("NaN")
+            try:
+                metrics_per_session["PLAYTIMES"].append(
+                    int(record["propertyInstances"][1]["value"])
+                )
+            except:
+                metrics_per_session["PLAYTIMES"].append("NaN")
 
-        try:
-            playthrough_data = record["propertyInstances"][4]["value"]
-            playthrough_data = json.loads(
-                playthrough_data
-            )  # converts the "dictionary" string into a dictionary
-            metrics_per_session["DAYS_PLAYED"].append(playthrough_data["daysPlayed"])
+            try:
+                playthrough_data = record["propertyInstances"][4]["value"]
+                playthrough_data = json.loads(
+                    playthrough_data
+                )  # converts the "dictionary" string into a dictionary
+                metrics_per_session["DAYS_PLAYED"].append(
+                    playthrough_data["daysPlayed"]
+                )
 
-            home_path, outdoors_path, work_path = 0, 0, 0
+                home_path, outdoors_path, work_path = 0, 0, 0
 
-            for turn in playthrough_data["turns"]:
-                if turn["DestinationPathType"] == 1:
-                    home_path += 1
-                elif turn["DestinationPathType"] == 2:
-                    outdoors_path += 1
-                elif turn["DestinationPathType"] == 3:
-                    work_path += 1
+                for turn in playthrough_data["turns"]:
+                    if turn["DestinationPathType"] == 1:
+                        home_path += 1
+                    elif turn["DestinationPathType"] == 2:
+                        outdoors_path += 1
+                    elif turn["DestinationPathType"] == 3:
+                        work_path += 1
 
-            metrics_per_session["HOME_PATH"].append(home_path)
-            metrics_per_session["WORK_PATH"].append(work_path)
-            metrics_per_session["OUTDOORS_PATH"].append(outdoors_path)
+                metrics_per_session["HOME_PATH"].append(home_path)
+                metrics_per_session["WORK_PATH"].append(work_path)
+                metrics_per_session["OUTDOORS_PATH"].append(outdoors_path)
 
-        except:
-            metrics_per_session["HOME_PATH"].append("NaN")
-            metrics_per_session["WORK_PATH"].append("NaN")
-            metrics_per_session["OUTDOORS_PATH"].append("NaN")
-            metrics_per_session["DAYS_PLAYED"].append("NaN")
+            except:
+                metrics_per_session["HOME_PATH"].append("NaN")
+                metrics_per_session["WORK_PATH"].append("NaN")
+                metrics_per_session["OUTDOORS_PATH"].append("NaN")
+                metrics_per_session["DAYS_PLAYED"].append("NaN")
 
     return metrics_per_session
+
+
+def save_id_date_latest_record(response):
+    parsed_response = json.loads(response.text)
+    id_latest_record = parsed_response[-1]["id"]
+    date_latest_record_miliseconds = parsed_response[-1][
+        "date"
+    ]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
+    date_latest_record_object = datetime.fromtimestamp(
+        date_latest_record_miliseconds / 1000
+    )  # create a datetime object from the timestamp
+    date_latest_record = date_latest_record_object.strftime(
+        "%d-%m-%y"
+    )  # format the datetime object into "dd-mm-yy"
+
+    return id_latest_record, date_latest_record
 
 
 def remove_nan(metrics) -> list:
@@ -192,6 +212,15 @@ def get_player_types(metrics_overview_normalized) -> dict:
     }
 
     return player_types_scores
+
+
+def update_metrics_overview(initial_metrics, new_metrics) -> dict:
+    updated_metrics = {}
+    for key in initial_metrics:
+        average_value = (initial_metrics[key] + new_metrics[key]) / 2
+        updated_metrics[key] = average_value
+
+    return updated_metrics
 
 
 """
