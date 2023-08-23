@@ -18,6 +18,69 @@ def parse_json(response, id_latest_record) -> dict:
     # print(parsed_response[-1]) #last record
 
     for record in parsed_response:
+        if record["id"] > id_latest_record:
+            for element in record["propertyInstances"]:
+                try:
+                    if element["property"]["translationKey"] == "SCORE":
+                        metrics_per_session["SCORES"].append(int(element["value"]))
+                except:
+                    metrics_per_session["SCORES"].append("NaN")
+
+                try:
+                    if element["property"]["translationKey"] == "PLAYTIME":
+                        metrics_per_session["PLAYTIMES"].append(int(element["value"]))
+                except:
+                    metrics_per_session["PLAYTIMES"].append("NaN")
+
+                try:
+                    if element["property"]["translationKey"] == "PLAYTHROUGH_DATA":
+                        playthrough_data = element["value"]
+                        playthrough_data = json.loads(
+                            playthrough_data
+                        )  # converts the "dictionary" string into a dictionary
+                        metrics_per_session["DAYS_PLAYED"].append(
+                            playthrough_data["daysPlayed"]
+                        )
+
+                        home_path, outdoors_path, work_path = 0, 0, 0
+
+                        for turn in playthrough_data["turns"]:
+                            if turn["DestinationPathType"] == 1:
+                                home_path += 1
+                            elif turn["DestinationPathType"] == 2:
+                                outdoors_path += 1
+                            elif turn["DestinationPathType"] == 3:
+                                work_path += 1
+
+                        metrics_per_session["HOME_PATH"].append(home_path)
+                        metrics_per_session["WORK_PATH"].append(work_path)
+                        metrics_per_session["OUTDOORS_PATH"].append(outdoors_path)
+
+                except:
+                    metrics_per_session["HOME_PATH"].append("NaN")
+                    metrics_per_session["WORK_PATH"].append("NaN")
+                    metrics_per_session["OUTDOORS_PATH"].append("NaN")
+                    metrics_per_session["DAYS_PLAYED"].append("NaN")
+
+    return metrics_per_session
+
+
+"""
+def parse_json(response, id_latest_record) -> dict:
+    metrics_per_session = {
+        "SCORES": [],  # each position of the list will represent the score achieved after a playthrough
+        "PLAYTIMES": [],  # each position of the list will represent how long a session took
+        "DAYS_PLAYED": [],  # each position of the list will represent the amount of simulated days the player decided to select for the session
+        "HOME_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
+        "WORK_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
+        "OUTDOORS_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
+    }
+
+    parsed_response = json.loads(response.text)
+    # print(parsed_response[-1]) #last record
+
+    for record in parsed_response:
+        print(record['propertyInstances'], "\n \n")
         if (record["id"] > id_latest_record):
             try:
                 metrics_per_session["SCORES"].append(
@@ -63,6 +126,7 @@ def parse_json(response, id_latest_record) -> dict:
                 metrics_per_session["DAYS_PLAYED"].append("NaN")
 
     return metrics_per_session
+"""
 
 
 def save_id_date_latest_record(response):
@@ -144,6 +208,7 @@ def normalize_metrics(metrics_overview) -> dict:
     }  # converting the normalized values back to a dictionary
 
     return normalized_dict
+
 
 def calculate_score_for_player_types(player_type_weights, metrics_overview_normalized):
     score = 0
@@ -293,7 +358,6 @@ class PlayerTypeAnalyzer:
     return player_types_scores
 
 """
-
 
 
 """
