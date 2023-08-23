@@ -1,24 +1,26 @@
-import requests, player_types, time, json
+import requests, player_types, time, pandas
 
 id_latest_record = 0
 date_latest_record = 0
 
-player_id = str(input("Please input the player id: "))  # id=993
-url = (
-    "https://api3-new.gamebus.eu/v2/players/"
-    + player_id
-    + "/activities?gds=SUGARVITA_PLAYTHROUGH"
-)
+secrets_path='secrets.csv'
+df=pandas.read_csv(secrets_path)
+secrets=df.to_numpy()
+
+for player_info in secrets: #most probably we will only have 1 user at a time, but still, let's keep the for loop
+    player_id=player_info[0]
+    auth_bearer=player_info[1]
+
+endpoint = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_PLAYTHROUGH".format(player_id)
 payload = {}
 headers = {
-    "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZ2FtZWJ1c19hcGkiXSwidXNlcl9uYW1lIjoiZC52YW5laWpsQHN0dWRlbnQuZm9udHlzLm5sIiwic2NvcGUiOlsicmVhZCIsIndyaXRlIiwidHJ1c3QiXSwiZXhwIjoxNzY3OTQyODcxLCJhdXRob3JpdGllcyI6WyJERVYiLCJVU0VSIl0sImp0aSI6InQ3OUZnQm4xaGprX3BnSG1CQ0NPOVVXc3BEayIsImNsaWVudF9pZCI6ImdhbWVidXNfYmFzZV9hcHAifQ.Ey9WBijTTCoB5WdmiWb_pfrBOPUHxSh0b8jGlWzPqK3ahTbkGdGvG5alm3Tl75cse3RVSq7Y-XttuoStQSXMJpLTEMjXFCuqEbkp-wvnl-xepguWutGECaFJy0XxlGUTOfBYe8Zahl7sN6TTH3h0aZYw2LD60qHEPdcL3bpeW0NBcq4um_50E-0mHdgtxQWzblVy6fr5itjmI-4azSlr2XOYyamNYNmsjfnfHQPNq1RYhFpy-ewXc7s1svFh9EhOMd5OcWD0ht5cDRcm6Iqz6T06W6az05fIWlXN2Q9k5SzPu0Ct0YBkzr4EXxwXyJeT-nWZnCbi30wYwEd78FtsJw"
+    "Authorization": "Bearer {}".format(auth_bearer)
 }
-
 
 if __name__ == "__main__":
     while True:
         if id_latest_record == 0 and date_latest_record == 0:
-            response = requests.request("GET", url, headers=headers, data=payload)
+            response = requests.request("GET", endpoint, headers=headers, data=payload)
             parsed_metrics = player_types.parse_json(response, id_latest_record)
             (
                 id_latest_record,

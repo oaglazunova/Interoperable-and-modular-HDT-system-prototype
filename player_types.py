@@ -145,7 +145,6 @@ def normalize_metrics(metrics_overview) -> dict:
 
     return normalized_dict
 
-
 def calculate_score_for_player_types(player_type_weights, metrics_overview_normalized):
     score = 0
     for key, value in player_type_weights.items():
@@ -221,6 +220,80 @@ def update_metrics_overview(initial_metrics, new_metrics) -> dict:
         updated_metrics[key] = average_value
 
     return updated_metrics
+
+
+"""
+
+class PlayerTypes:
+    def __init__(self, weights):
+        self.weights=weights
+        self.score=0
+
+    def calculate_score_for_player_types(self,metrics_overview_normalized):
+        for key, value in self.weights.items():
+            score += value * metrics_overview_normalized[key]
+        return score
+
+
+class PlayerTypeAnalyzer:
+    def __init__(self): #definet the metrics
+        self.player_types={
+            "Socializer": PlayerTypes({ #pass the metrics and the weights
+                "avg_score": 0,
+                "sd_score": 0,
+                "avg_playtimes": 0,
+                "sd_playtimes": 0,
+                "1_day_session": 0,
+                "2_days_session": 0,
+                "3_days_session": 0,
+                "avg_days_session": 0,
+                "sd_days_session": 0,
+                "total_work_path": 0.5,
+                "total_home_path": 0,
+                "total_outdoors_path": 0.5
+            }),
+            "Competitive": PlayerTypes({
+                "avg_score": 0.3,
+                "sd_score": 0.05,
+                "avg_playtimes": 0,
+                "sd_playtimes": 0,
+                "1_day_session": 0.2,
+                "2_days_session": 0.1,
+                "3_days_session": 0,
+                "avg_days_session": 0.1,
+                "sd_days_session": 0.05,
+                "total_work_path": 0.1,
+                "total_home_path": 0.05,
+                "total_outdoors_path": 0.05
+            }),
+            "Explorer": PlayerTypes({
+                "avg_score": 0,
+                "sd_score": 0,
+                "avg_playtimes": 0.3,
+                "sd_playtimes": 0.05,
+                "1_day_session": 0,
+                "2_days_session": 0.1,
+                "3_days_session": 0.15,
+                "avg_days_session": 0.15,
+                "sd_days_session": 0.05,
+                "total_work_path": 0.05,
+                "total_home_path": 0.05,
+                "total_outdoors_path": 0.1
+            })
+        }
+    
+    def get_player_types_score():
+    
+
+    def get_player_types(self, metrics_overview_normalized):
+    player_types_scores = {}
+    for player_type_name, player_type_obj in self.player_types.items():
+        score = player_type_obj.calculate_score(metrics_overview_normalized)
+        player_types_scores[player_type_name] = score
+    return player_types_scores
+
+"""
+
 
 
 """
