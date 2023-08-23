@@ -18,7 +18,7 @@ def parse_json(response, id_latest_record) -> dict:
     # print(parsed_response[-1]) #last record
 
     for record in parsed_response:
-        if record["id"] > id_latest_record:
+        if (record["id"] > id_latest_record):
             try:
                 metrics_per_session["SCORES"].append(
                     int(record["propertyInstances"][0]["value"])

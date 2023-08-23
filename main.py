@@ -19,11 +19,11 @@ if __name__ == "__main__":
     while True:
         if id_latest_record == 0 and date_latest_record == 0:
             response = requests.request("GET", url, headers=headers, data=payload)
+            parsed_metrics = player_types.parse_json(response, id_latest_record)
             (
                 id_latest_record,
                 date_latest_record,
             ) = player_types.save_id_date_latest_record(response)
-            parsed_metrics = player_types.parse_json(response, id_latest_record)
             # parsed_metrics=player_types.parse_json_try(response)
             parsed_metrics_cleaned = player_types.remove_nan(parsed_metrics)
             metrics_overview = player_types.manipulate_initial_metrics(
@@ -37,7 +37,9 @@ if __name__ == "__main__":
                 metrics_overview_normalized
             )
             print(player_types_labels)
-            # time.sleep(10*60) #10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+            time.sleep(1*60) #10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+        
+        
         else:
             url_filtered = (
                 "https://api3-new.gamebus.eu/v2/players/993/activities?start="
@@ -56,22 +58,22 @@ if __name__ == "__main__":
                 metrics_overview_new_data = player_types.manipulate_initial_metrics(
                     parsed_metrics_cleaned
                 )
-                updated_metrics_overview = player_types.update_metrics_overview(
+                metrics_overview = player_types.update_metrics_overview(
                     metrics_overview, metrics_overview_new_data
-                )
-
-                updated_metrics_overview_normalized = player_types.normalize_metrics(
-                    updated_metrics_overview
-                )
+                ) #updated metrics_overview
+                metrics_overview_normalized = player_types.normalize_metrics(
+                    metrics_overview
+                ) #updated metrics_overview_normalized
                 # print(metrics_overview_normalized)
                 player_types_labels = player_types.get_player_types(
-                    updated_metrics_overview_normalized
-                )
+                    metrics_overview_normalized
+                ) #updated labels
                 print(player_types_labels)
                 id_latest_record = id_new_latest  # save the new id of the last record (will for sure change)
                 date_latest_record = (
                     date_new_latest  # save the date of the last record (might change)
                 )
             else:
-                # time.sleep(10*60) #10*60 seconds --> 10 minutes --> it needs to be represented in seconds
-                break
+                print('No new records')
+                time.sleep(1*60) #10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+                #break
