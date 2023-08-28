@@ -1,31 +1,30 @@
 import requests, player_types, time, pandas, health_literacy
 
-id_latest_record_pt = 0
-id_latest_record_hl = 0
-date_latest_record = 0
-
-secrets_path = "secrets.csv"
-df = pandas.read_csv(secrets_path)
-secrets = df.to_numpy()
-
-for (
-    player_info
-) in (
-    secrets
-):  # most probably we will only have 1 user at a time, but still, let's keep the for loop
-    player_id = player_info[0]
-    auth_bearer = player_info[1]
-
-endpoint_pt = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_PLAYTHROUGH".format(
-    player_id
-)
-endpoint_hl = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_ENGAGEMENT_LOG_1".format(
-    player_id
-)
-payload = {}
-headers = {"Authorization": "Bearer {}".format(auth_bearer)}
-
 if __name__ == "__main__":
+    id_latest_record_pt = 0
+    id_latest_record_hl = 0
+    date_latest_record = 0
+
+    secrets_path = "secrets.csv"
+    df = pandas.read_csv(secrets_path)
+    secrets = df.to_numpy()
+
+    for (
+        player_info
+    ) in (
+        secrets
+    ):  # most probably we will only have 1 user at a time, but still, let's keep the for loop
+        player_id = player_info[0]
+        auth_bearer = player_info[1]
+
+    endpoint_pt = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_PLAYTHROUGH".format(
+        player_id
+    )
+    endpoint_hl = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_ENGAGEMENT_LOG_1".format(
+        player_id
+    )
+    payload = {}
+    headers = {"Authorization": "Bearer {}".format(auth_bearer)}
     while True:
         if id_latest_record_pt == 0 and id_latest_record_hl == 0 and date_latest_record == 0:
             response_pt = requests.request("GET", endpoint_pt, headers=headers, data=payload)
