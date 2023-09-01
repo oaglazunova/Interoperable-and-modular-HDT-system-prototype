@@ -1,21 +1,19 @@
-import requests, player_types, time, pandas, health_literacy
+import requests, player_types, time, pandas, os
+from dotenv import load_dotenv
 
 if __name__ == "__main__":
+    load_dotenv()
+
     id_latest_record_pt = 0
     id_latest_record_hl = 0
     date_latest_record = 0
 
-    secrets_path = "secrets.csv"
-    df = pandas.read_csv(secrets_path)
-    secrets = df.to_numpy()
+    # secrets_path = "secrets.csv"
+    # df = pandas.read_csv(secrets_path)
+    # secrets = df.to_numpy()
 
-    for (
-        player_info
-    ) in (
-        secrets
-    ):  # most probably we will only have 1 user at a time, but still, let's keep the for loop
-        player_id = player_info[0]
-        auth_bearer = player_info[1]
+    player_id = str(os.getenv("PLAYER_ID"))
+    auth_bearer = str(os.getenv("AUTHORIZATION_BEARER"))
 
     endpoint_pt = "https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_PLAYTHROUGH".format(
         player_id
@@ -26,13 +24,23 @@ if __name__ == "__main__":
     payload = {}
     headers = {"Authorization": "Bearer {}".format(auth_bearer)}
     while True:
-        if id_latest_record_pt == 0 and id_latest_record_hl == 0 and date_latest_record == 0:
-            response_pt = requests.request("GET", endpoint_pt, headers=headers, data=payload)
-            response_hl = requests.request("GET", endpoint_hl, headers=headers, data=payload)
+        if (
+            id_latest_record_pt == 0
+            and id_latest_record_hl == 0
+            and date_latest_record == 0
+        ):
+            response_pt = requests.request(
+                "GET", endpoint_pt, headers=headers, data=payload
+            )
+            response_hl = requests.request(
+                "GET", endpoint_hl, headers=headers, data=payload
+            )
 
-            parsed_metrics = player_types.parse_json(response_pt, response_hl, id_latest_record_pt, id_latest_record_hl)
+            parsed_metrics = player_types.parse_json(
+                response_pt, response_hl, id_latest_record_pt, id_latest_record_hl
+            )
             (
-                id_latest_record_pt, 
+                id_latest_record_pt,
                 id_latest_record_hl,
                 date_latest_record,
             ) = player_types.save_id_date_latest_record(response_pt, response_hl)
@@ -55,20 +63,34 @@ if __name__ == "__main__":
             )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
 
         else:
-            url_filtered = (
-                "https://api3-new.gamebus.eu/v2/players/993/activities?start="
+            endpoint_filtered_pt = (
+                "https://api3-new.gamebus.eu/v2/players/{}/activities?start="
                 + str(date_latest_record)
                 + "&gds=SUGARVITA_PLAYTHROUGH"
             )
-            response_pt = requests.request("GET", endpoint_pt, headers=headers, data=payload)
-            id_new_latest_pt, id_new_latest_hl, date_new_latest = player_types.save_id_date_latest_record(
-                response_pt,
-                response_hl
+            endpoint_filtered_hl = (
+                "https://api3-new.gamebus.eu/v2/players/{}/activities?start="
+                + str(date_latest_record)
+                + "&gds=SUGARVITA_ENGAGEMENT_LOG_1"
             )
+            response_pt = requests.request(
+                "GET", endpoint_pt, headers=headers, data=payload
+            )
+            response_hl = requests.request(
+                "GET", endpoint_hl, headers=headers, data=payload
+            )
+            (
+                id_new_latest_pt,
+                id_new_latest_hl,
+                date_new_latest,
+            ) = player_types.save_id_date_latest_record(response_pt, response_hl)
             if (
-                id_latest_record_pt != id_new_latest_pt and id_latest_record_hl != id_new_latest_hl
+                id_latest_record_pt != id_new_latest_pt
+                and id_latest_record_hl != id_new_latest_hl
             ):  # if the id saved is different from the id of the latest record, then we have new data
-                parsed_metrics = player_types.parse_json(response_pt, response_hl, id_new_latest_pt, id_new_latest_hl)
+                parsed_metrics = player_types.parse_json(
+                    response_pt, response_hl, id_new_latest_pt, id_new_latest_hl
+                )
                 parsed_metrics_cleaned = player_types.remove_nan(parsed_metrics)
                 metrics_overview_new_data = player_types.manipulate_initial_metrics(
                     parsed_metrics_cleaned
@@ -84,7 +106,8 @@ if __name__ == "__main__":
                     metrics_overview_normalized
                 )  # updated labels
                 print(player_types_labels)
-                id_latest_record = id_new_latest  # save the new id of the last record (will for sure change)
+                id_latest_record_pt = id_new_latest_pt  # save the new id of the last record (will for sure change)
+                id_latest_record_hl = id_new_latest_hl
                 date_latest_record = (
                     date_new_latest  # save the date of the last record (might change)
                 )

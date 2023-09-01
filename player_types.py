@@ -5,7 +5,9 @@ from datetime import datetime
 import ast
 
 
-def parse_json(response_pt, response_hl, id_latest_record_pt, id_latest_record_hl) -> dict:
+def parse_json(
+    response_pt, response_hl, id_latest_record_pt, id_latest_record_hl
+) -> dict:
     metrics_per_session = {
         "SCORES": [],  # each position of the list will represent the score achieved after a playthrough
         "PLAYTIMES": [],  # each position of the list will represent how long a session took
@@ -13,16 +15,16 @@ def parse_json(response_pt, response_hl, id_latest_record_pt, id_latest_record_h
         "HOME_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
         "WORK_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
         "OUTDOORS_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
-        "GLUCOSE_LEVELS": [], # each position of the list will be a list with the different levels of glucose in a session
-        "SCORE_VARIATION": [], #each position of the list will be a list with the different scores during a playthrough
-        "TOTAL_TRIPS_HOSPITAL": [], #each position of the list will represent the amount of times a player has landed on the hospital part of the board
-        "GLUCOSE_CRITICAL_VALUE_RESPONSE": [], #each position of the list will be a list with the different scores during a playthrough
-        "TURN_TIME":[] #each position of the list will be a list with the time a turn took during a playthrough
+        "GLUCOSE_LEVELS": [],  # each position of the list will be a list with the different levels of glucose in a session
+        "SCORE_VARIATION": [],  # each position of the list will be a list with the different scores during a playthrough
+        "TOTAL_TRIPS_HOSPITAL": [],  # each position of the list will represent the amount of times a player has landed on the hospital part of the board
+        "GLUCOSE_CRITICAL_VALUE_RESPONSE": [],  # each position  of the list will be a list with the different scores during a playthrough
+        "TURN_TIME": [],  # each position of the list will be a list with the time a turn took during a playthrough
     }
 
     parsed_response_pt = json.loads(response_pt.text)
     parsed_response_hl = json.loads(response_hl.text)
-    #print(parsed_response_hl[-1]) #last record
+    # print(parsed_response_hl[-1]) #last record
 
     for record in parsed_response_pt:
         if record["id"] > id_latest_record_pt:
@@ -68,53 +70,105 @@ def parse_json(response_pt, response_hl, id_latest_record_pt, id_latest_record_h
                     metrics_per_session["WORK_PATH"].append("NaN")
                     metrics_per_session["OUTDOORS_PATH"].append("NaN")
                     metrics_per_session["DAYS_PLAYED"].append("NaN")
-        
-    
-    for record in parsed_response_hl:
-        current_score=[]
-        is_hospitalised=0
-        glucose_values_each_turn=[]
-        turn_time=[]
 
+    for record in parsed_response_hl:
+        current_score = []
+        glucose_values_each_turn = []
+        turn_time = []
+        is_hospitalised = 0
         if record["id"] > id_latest_record_hl:
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "ENGAGEMENT_DATA":
                         engagement_data = element["value"]
-                        engagement_data = json.loads(
-                            engagement_data
-                        )
+                        engagement_data = json.loads(engagement_data)
                         try:
-                            for gameplaydata in engagement_data['GameplayData']:
-                                gameplaydata_values=gameplaydata['Values'][0] #gameplaydata --> ['{...}'] --> we want to have the string to later use json loads and get the dictionary structure
-                                gameplaydata_dict= json.loads(gameplaydata_values)
-                                #print(gameplaydata_dict)
-                                #print("\n")
-                                for turn in gameplaydata_dict["turns"]:
-                                    print(turn)
-                                    print("\n")
-                                    current_score.append(turn["CurrentScore"])
-                                    if turn["IsHospitalised"]==True:
-                                        is_hospitalised+=1
-                                    if glucose_values_each_turn==[] and turn_time==[]:
-                                        glucose_values_each_turn.append(turn["GlucoseValueStart"],turn["GlucoseValueEnd"])
-                                        turn_time.append(turn["MinutesStart"],turn["MinutesEnd"])
+                            if (
+                                engagement_data["GameplayData"] is not None
+                                and engagement_data["GameplayData"] != []
+                            ):  # if len(engagement_data["Gameplay"]>1) --> there are more than 1 players!
+                                # print(len(engagement_data["GameplayData"]), "\n")
+
+                                for gameplaydata in engagement_data["GameplayData"]:
+                                    gameplaydata_values = gameplaydata["Values"][
+                                        0
+                                    ]  # gameplaydata --> ['{...}'] --> we want to have the string to later use json loads and get the dictionary structure
+                                    gameplaydata_dict = json.loads(gameplaydata_values)
+                                    if (
+                                        gameplaydata_dict["aborted"] == False
+                                        and gameplaydata_dict["playerNr"] == 1
+                                    ):  # WE ARE ASSUMING THAT OUR PLAYER IS ALWAYS THE NR.1, EVEN WHEN THERE'S MORE PLAYERS PLAYING!
+                                        for turn in gameplaydata_dict["turns"]:
+                                            if (
+                                                turn["CurrentScore"] != 0
+                                            ):  # at the end of a session, the last value of score is 0. It does not bring value to us, so we'll ignore it!
+                                                current_score.append(
+                                                    turn["CurrentScore"]
+                                                )
+                                            if turn["IsHospitalised"] == True:
+                                                is_hospitalised += 1
+                                            if (
+                                                glucose_values_each_turn == []
+                                                and turn_time == []
+                                            ):
+                                                glucose_values_each_turn.append(
+                                                    turn["GlucoseValueStart"]
+                                                )
+                                                if (
+                                                    turn["GlucoseValueEnd"] != 0.0
+                                                ):  # at the end of a session, the last value of glucose is 0.0. It does not bring value to us, so we'll ignore it!
+                                                    glucose_values_each_turn.append(
+                                                        turn["GlucoseValueEnd"]
+                                                    )
+                                                turn_time.append(turn["MinutesStart"])
+                                                if (
+                                                    turn["MinutesEnd"] != 0
+                                                ):  # at the end of a session, the last value of minutes is 0. It does not bring value to us, so we'll ignore it!
+                                                    turn_time.append(turn["MinutesEnd"])
+                                            else:
+                                                glucose_values_each_turn.append(
+                                                    turn["GlucoseValueEnd"]
+                                                )
+                                                turn_time.append(turn["MinutesEnd"])
+                                if (
+                                    is_hospitalised != []
+                                    and current_score != []
+                                    and turn_time != []
+                                    and glucose_values_each_turn != []
+                                ):
+                                    if current_score[-1] == 0:
+                                        metrics_per_session["SCORE_VARIATION"].append(
+                                            current_score[:-1]
+                                        )
                                     else:
-                                        glucose_values_each_turn.append(turn["GlucoseValuesEnd"])
-                                        turn_time.append(turn["MinutesEnd"])
-                            metrics_per_session["GLUCOSE_LEVELS"].append(glucose_values_each_turn)
-                            metrics_per_session["SCORE_VARIATION"].append(current_score)
-                            metrics_per_session["TOTAL_TRIPS_HOSPITAL"].append(is_hospitalised)
+                                        metrics_per_session["SCORE_VARIATION"].append(
+                                            current_score
+                                        )
+                                    if turn_time[-1] == 0:
+                                        metrics_per_session["TURN_TIME"].append(
+                                            turn_time[:-1]
+                                        )
+                                    else:
+                                        metrics_per_session["TURN_TIME"].append(
+                                            turn_time
+                                        )
+                                    if glucose_values_each_turn[-1] == 0:
+                                        metrics_per_session["GLUCOSE_LEVELS"].append(
+                                            glucose_values_each_turn[:-1]
+                                        )
+                                    else:
+                                        metrics_per_session["GLUCOSE_LEVELS"].append(
+                                            glucose_values_each_turn
+                                        )
+                                    metrics_per_session["TOTAL_TRIPS_HOSPITAL"].append(
+                                        is_hospitalised
+                                    )
 
+                        except Exception as e:
+                            print("!", e, "\n")
 
-                        except:
-                            continue
-                        break
-                        
-                except:
-                    break
-                
-
+                except Exception as e:
+                    print("!", e, "\n")
 
     return metrics_per_session
 
