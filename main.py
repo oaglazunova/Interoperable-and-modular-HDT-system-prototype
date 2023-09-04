@@ -47,17 +47,25 @@ if __name__ == "__main__":
             print(parsed_metrics)
             # parsed_metrics=player_types.parse_json_try(response)
             parsed_metrics_cleaned = player_types.remove_nan(parsed_metrics)
-            metrics_overview = player_types.manipulate_initial_metrics(
-                parsed_metrics_cleaned
+            (
+                metrics_overview_pt,
+                metrics_overview_hl,
+            ) = player_types.manipulate_initial_metrics(parsed_metrics_cleaned)
+            metrics_overview_pt_normalized = player_types.normalize_metrics(
+                metrics_overview_pt
             )
-            metrics_overview_normalized = player_types.normalize_metrics(
-                metrics_overview
+            metrics_overview_hl_normalized = player_types.normalize_metrics(
+                metrics_overview_hl
             )
             # print(metrics_overview_normalized)
             player_types_labels = player_types.get_player_types(
-                metrics_overview_normalized
+                metrics_overview_pt_normalized
+            )
+            health_literacy_score = player_types.get_health_literacy_score(
+                metrics_overview_hl
             )
             print(player_types_labels)
+            print(health_literacy_score)
             time.sleep(
                 1 * 60
             )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
@@ -92,20 +100,31 @@ if __name__ == "__main__":
                     response_pt, response_hl, id_new_latest_pt, id_new_latest_hl
                 )
                 parsed_metrics_cleaned = player_types.remove_nan(parsed_metrics)
-                metrics_overview_new_data = player_types.manipulate_initial_metrics(
-                    parsed_metrics_cleaned
-                )
-                metrics_overview = player_types.update_metrics_overview(
-                    metrics_overview, metrics_overview_new_data
+                (
+                    metrics_overview_pt_new_data,
+                    metrics_overview_hl_new_data,
+                ) = player_types.manipulate_initial_metrics(parsed_metrics_cleaned)
+                metrics_pt_overview = player_types.update_metrics_overview(
+                    metrics_overview_pt, metrics_overview_pt_new_data
                 )  # updated metrics_overview
-                metrics_overview_normalized = player_types.normalize_metrics(
-                    metrics_overview
-                )  # updated metrics_overview_normalized
+                metrics_hl_overview = player_types.update_metrics_overview(
+                    metrics_overview_hl, metrics_overview_hl_new_data
+                )  # updated metrics_overview
+                metrics_overview_pt_normalized = player_types.normalize_metrics(
+                    metrics_pt_overview
+                )  # updated metrics_overview_pt_normalized
+                metrics_overview_hl_normalized = player_types.normalize_metrics(
+                    metrics_hl_overview
+                )  # updated metrics_overview_hl_normalized
                 # print(metrics_overview_normalized)
                 player_types_labels = player_types.get_player_types(
-                    metrics_overview_normalized
+                    metrics_overview_pt_normalized
                 )  # updated labels
+                health_literacy_score = player_types.get_health_literacy_score(
+                    metrics_overview_hl_normalized
+                )
                 print(player_types_labels)
+                print(health_literacy_score)
                 id_latest_record_pt = id_new_latest_pt  # save the new id of the last record (will for sure change)
                 id_latest_record_hl = id_new_latest_hl
                 date_latest_record = (

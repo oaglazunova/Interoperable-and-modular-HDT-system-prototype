@@ -15,6 +15,7 @@ def parse_json(
         "HOME_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
         "WORK_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
         "OUTDOORS_PATH": [],  # each position of the list will represent the amount of times a player chose a Home Path Type during a session
+        "GLUCOSE_ACCURACY": [],  # each position of the list will represent the final percentage the player was able to keep the glucose levels within a good range
         "GLUCOSE_LEVELS": [],  # each position of the list will be a list with the different levels of glucose in a session
         "SCORE_VARIATION": [],  # each position of the list will be a list with the different scores during a playthrough
         "TOTAL_TRIPS_HOSPITAL": [],  # each position of the list will represent the amount of times a player has landed on the hospital part of the board
@@ -40,6 +41,17 @@ def parse_json(
                         metrics_per_session["PLAYTIMES"].append(int(element["value"]))
                 except:
                     metrics_per_session["PLAYTIMES"].append("NaN")
+
+                try:
+                    if (
+                        element["property"]["translationKey"]
+                        == "GLUCOSE_RANGE_PERCENTAGE"
+                    ):
+                        metrics_per_session["GLUCOSE_ACCURACY"].append(
+                            int(element["value"])
+                        )
+                except:
+                    continue  # not all records will have the glucose_range_percentage as this property was recently created
 
                 try:
                     if element["property"]["translationKey"] == "PLAYTHROUGH_DATA":
@@ -428,7 +440,7 @@ def remove_nan(metrics) -> list:
 
 
 def manipulate_initial_metrics(metrics_cleaned) -> dict:
-    metrics_overview = {
+    metrics_overview_pt = {
         "avg_score": 0,  # average of the scores from all sessions played
         "sd_score": 0,  # standard deviation """
         "avg_playtimes": 0,  # average of the playtimes """
@@ -443,31 +455,48 @@ def manipulate_initial_metrics(metrics_cleaned) -> dict:
         "total_outdoors_path": 0,  # """ outdoors path
     }
 
+    metrics_overview_hl = {
+        "avg_glucose_critical_value_response": 0,  # average variation to get back to the green region (or the closes to the green region)
+        "trips_to_hospital_per_game": 0,  # total trips to hospital / total number of games
+        "avg_glucose_accuracy": 0,
+    }
+
     for key, value in metrics_cleaned.items():
+        # PLAYER TYPES METRICS
         if key == "SCORES":
-            metrics_overview["avg_score"] = round(mean(value), 2)
-            metrics_overview["sd_score"] = round(pstdev(value), 2)
+            metrics_overview_pt["avg_score"] = round(mean(value), 2)
+            metrics_overview_pt["sd_score"] = round(pstdev(value), 2)
         elif key == "PLAYTIMES":
-            metrics_overview["avg_playtimes"] = round(mean(value), 2)
-            metrics_overview["sd_playtimes"] = round(pstdev(value), 2)
+            metrics_overview_pt["avg_playtimes"] = round(mean(value), 2)
+            metrics_overview_pt["sd_playtimes"] = round(pstdev(value), 2)
         elif key == "DAYS_PLAYED":
-            metrics_overview["avg_days_session"] = round(mean(value), 2)
-            metrics_overview["sd_days_session"] = round(pstdev(value), 2)
+            metrics_overview_pt["avg_days_session"] = round(mean(value), 2)
+            metrics_overview_pt["sd_days_session"] = round(pstdev(value), 2)
             for days in value:
                 if days == 1:
-                    metrics_overview["1_day_session"] += 1
+                    metrics_overview_pt["1_day_session"] += 1
                 elif days == 2:
-                    metrics_overview["2_days_session"] += 1
+                    metrics_overview_pt["2_days_session"] += 1
                 elif days == 3:
-                    metrics_overview["3_days_session"] += 1
+                    metrics_overview_pt["3_days_session"] += 1
         elif key == "HOME_PATH":
-            metrics_overview["total_home_path"] = sum(value)
+            metrics_overview_pt["total_home_path"] = sum(value)
         elif key == "WORK_PATH":
-            metrics_overview["total_work_path"] = sum(value)
+            metrics_overview_pt["total_work_path"] = sum(value)
         elif key == "OUTDOORS_PATH":
-            metrics_overview["total_outdoors_path"] = sum(value)
+            metrics_overview_pt["total_outdoors_path"] = sum(value)
 
-    return metrics_overview
+        # HEALTH LITERACY METRICS
+        elif key == "GLUCOSE_ACCURACY":
+            metrics_overview_hl["avg_glucose_accuracy"] = round(mean(value), 2)
+        elif key == "TOTAL_TRIPS_HOSPITAL":
+            metrics_overview_hl["trips_to_hospital_per_game"] = sum(value) / len(value)
+        elif key == "GLUCOSE_CRITICAL_VALUE_RESPONSE":
+            metrics_overview_hl["avg_glucose_critical_value_response"] = round(
+                mean(value), 2
+            )
+
+    return metrics_overview_pt, metrics_overview_hl
 
 
 def normalize_metrics(metrics_overview) -> dict:
@@ -484,14 +513,30 @@ def normalize_metrics(metrics_overview) -> dict:
     return normalized_dict
 
 
-def calculate_score_for_player_types(player_type_weights, metrics_overview_normalized):
+def calculate_score(
+    weights, metrics_normalized
+):  # for player types and health literacy level
     score = 0
-    for key, value in player_type_weights.items():
-        score += value * metrics_overview_normalized[key]
+    for key, value in weights.items():
+        score += value * metrics_normalized[key]
     return score
 
 
-def get_player_types(metrics_overview_normalized) -> dict:
+def get_health_literacy_score(metrics_overview_hl_normalized) -> float:
+    health_literacy_metrics_weights = {
+        "avg_glucose_critical_value_response": 0.15,
+        "trips_to_hospital_per_game": 0.35,
+        "avg_glucose_accuracy": 0.5,
+    }
+
+    health_literacy_score = calculate_score(
+        health_literacy_metrics_weights, metrics_overview_hl_normalized
+    )
+
+    return health_literacy_score
+
+
+def get_player_types(metrics_overview_pt_normalized) -> dict:
     socializer_weights = {
         "avg_score": 0,
         "sd_score": 0,
@@ -538,15 +583,13 @@ def get_player_types(metrics_overview_normalized) -> dict:
     }
 
     player_types_scores = {
-        "Socializer": calculate_score_for_player_types(
-            socializer_weights, metrics_overview_normalized
+        "Socializer": calculate_score(
+            socializer_weights, metrics_overview_pt_normalized
         ),
-        "Competitive": calculate_score_for_player_types(
-            competitive_weights, metrics_overview_normalized
+        "Competitive": calculate_score(
+            competitive_weights, metrics_overview_pt_normalized
         ),
-        "Explorer": calculate_score_for_player_types(
-            explorer_weights, metrics_overview_normalized
-        ),
+        "Explorer": calculate_score(explorer_weights, metrics_overview_pt_normalized),
     }
 
     return player_types_scores
