@@ -164,3 +164,7 @@ cython_debug/
 secrets.csv
 
 .env
+
+.packagelock.json
+
+.package.json

@@ -170,7 +170,235 @@ def parse_json(
                 except Exception as e:
                     print("!", e, "\n")
 
+    metrics_per_session[
+        "GLUCOSE_CRITICAL_VALUE_RESPONSE"
+    ] = get_glucose_critical_value_response(
+        metrics_per_session["GLUCOSE_LEVELS"], metrics_per_session["TURN_TIME"]
+    )
+
     return metrics_per_session
+
+
+def get_glucose_critical_value_response(glucose_levels, times):
+    glucose_critical_value_response = []
+    # red=0
+
+    values_to_calculate_critical_value_response = {
+        "red_glucose_value": -1,
+        "closest_green_glucose_value": -1,
+        "time_red": -1,
+        "time_closest_green": -1,
+    }
+
+    blood_glucose_colored_regions = (
+        {  # we will follow the colored labels that "Do not use insulin"
+            "red": [(0, 2.6), (15, 20)],
+            "light_red": [(2.6, 3.3), (11, 15)],
+            "yellow": [(3.3, 4.5), (8, 11)],
+            "green": [(4.5, 8)],
+        }
+    )
+    for glucose_playthrough, times_playthrough in zip(glucose_levels, times):
+        for glucose_value, time in zip(glucose_playthrough, times_playthrough):
+            for color, ranges in blood_glucose_colored_regions.items():
+                for min_range, max_range in ranges:
+                    if min_range <= glucose_value <= max_range:
+                        if (
+                            color == "red"
+                            and values_to_calculate_critical_value_response[
+                                "red_glucose_value"
+                            ]
+                            == -1
+                        ):  # no red value
+                            # red+=1
+                            values_to_calculate_critical_value_response[
+                                "red_glucose_value"
+                            ] = glucose_value
+                            values_to_calculate_critical_value_response[
+                                "time_red"
+                            ] = time
+
+                        elif (
+                            color == "red"
+                            and values_to_calculate_critical_value_response[
+                                "red_glucose_value"
+                            ]
+                            != -1
+                        ):  # if there was already a red value, but now there's another one, we choose the worst one
+                            # red+=1
+                            if (
+                                values_to_calculate_critical_value_response[
+                                    "closest_green_glucose_value"
+                                ]
+                                != -1
+                            ):  # if there's a new red value, but the previous critical response has not been calculated, it needs to be calculated
+                                glucose_critical_value_response.append(
+                                    calculate_glucose_critical_value_response(
+                                        values_to_calculate_critical_value_response
+                                    )
+                                )
+                                values_to_calculate_critical_value_response = (
+                                    reset_dictionary_values(
+                                        values_to_calculate_critical_value_response
+                                    )
+                                )
+                                values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ] = glucose_value  # set new values for red
+                                values_to_calculate_critical_value_response[
+                                    "time_red"
+                                ] = time  # set new values for red
+
+                            # in case there's a new red value but no closes_green_glucose_value, we need to check the worst red value and consider it (in both ranges!)
+                            elif (
+                                values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ]
+                                >= 15
+                                and values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ]
+                                < glucose_value
+                            ):
+                                values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ] = glucose_value
+                                values_to_calculate_critical_value_response[
+                                    "time_red"
+                                ] = time
+
+                            elif (
+                                values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ]
+                                <= 2.6
+                                and values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ]
+                                > glucose_value
+                            ):
+                                values_to_calculate_critical_value_response[
+                                    "red_glucose_value"
+                                ] = glucose_value
+                                values_to_calculate_critical_value_response[
+                                    "time_red"
+                                ] = time
+
+                        elif (
+                            color == "green"
+                            and values_to_calculate_critical_value_response[
+                                "red_glucose_value"
+                            ]
+                            != -1
+                        ):
+                            values_to_calculate_critical_value_response[
+                                "closest_green_glucose_value"
+                            ] = glucose_value
+                            values_to_calculate_critical_value_response[
+                                "time_closest_green"
+                            ] = time
+                            glucose_critical_value_response.append(
+                                calculate_glucose_critical_value_response(
+                                    values_to_calculate_critical_value_response
+                                )
+                            )
+                            values_to_calculate_critical_value_response = (
+                                reset_dictionary_values(
+                                    values_to_calculate_critical_value_response
+                                )
+                            )
+
+                        elif (
+                            color != "red"
+                            and color != "green"
+                            and values_to_calculate_critical_value_response[
+                                "red_glucose_value"
+                            ]
+                            != -1
+                        ):
+                            if (
+                                values_to_calculate_critical_value_response[
+                                    "closest_green_glucose_value"
+                                ]
+                                == -1
+                            ):  # if there's no value closest to green section, we just add it
+                                values_to_calculate_critical_value_response[
+                                    "closest_green_glucose_value"
+                                ] = glucose_value
+                                values_to_calculate_critical_value_response[
+                                    "time_closest_green"
+                                ] = time
+                            elif (
+                                abs(
+                                    values_to_calculate_critical_value_response[
+                                        "closest_green_glucose_value"
+                                    ]
+                                    - values_to_calculate_critical_value_response[
+                                        "red_glucose_value"
+                                    ]
+                                )
+                            ) > (
+                                abs(
+                                    glucose_value
+                                    - values_to_calculate_critical_value_response[
+                                        "red_glucose_value"
+                                    ]
+                                )
+                            ):
+                                # if the new value of glucose is closest to the green region, we have to update the values in the dictionary
+                                values_to_calculate_critical_value_response[
+                                    "closest_green_glucose_value"
+                                ] = glucose_value
+                                values_to_calculate_critical_value_response[
+                                    "time_closest_green"
+                                ] = time
+
+        # at the end of a playthrough, even if the player did not reach the green area after being in the red region, the critical value response must be calculated
+        if (
+            values_to_calculate_critical_value_response["red_glucose_value"] != -1
+            and values_to_calculate_critical_value_response[
+                "closest_green_glucose_value"
+            ]
+            != -1
+        ):
+            glucose_critical_value_response.append(
+                calculate_glucose_critical_value_response(
+                    values_to_calculate_critical_value_response
+                )
+            )
+
+        # reset values of our dictionary at the end of every analysed playthrough
+        values_to_calculate_critical_value_response = reset_dictionary_values(
+            values_to_calculate_critical_value_response
+        )
+
+    # print(red)
+    return glucose_critical_value_response
+
+
+def calculate_glucose_critical_value_response(glucose_and_times) -> float:
+    glucose_critical_value_response = abs(
+        (
+            (
+                glucose_and_times["closest_green_glucose_value"]
+                - glucose_and_times["red_glucose_value"]
+            )
+            / (glucose_and_times["time_closest_green"] - glucose_and_times["time_red"])
+        )
+    )
+
+    return glucose_critical_value_response
+
+
+def reset_dictionary_values(some_dict) -> dict:
+    for (
+        key
+    ) in (
+        some_dict
+    ):  # reset values of our dictionary at the end of every analysed playthrough
+        some_dict[key] = -1
+
+    return some_dict
 
 
 def save_id_date_latest_record(response_pt, response_hl):
