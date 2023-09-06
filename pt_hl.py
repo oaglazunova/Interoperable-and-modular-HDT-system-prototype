@@ -4,9 +4,36 @@ from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 import ast
 
+def parse_json_trivia(
+        response_trivia, id_latest_record_trivia
+) -> dict:
+    metrics = {
+        "WITH_HINT": {"TRUE": 0, # counts the number of times questions were answered with a hint
+                 "FALSE": 0}, # counts the number of times questions were answere without a hint
+        "DIFFICULTY LEVEL": {"EASY": 0, # counts the number of easy questions answered 
+                             "NORMAL": 0, # counts the number of normal (intermediate) questions answered
+                             "HARD": 0}, # counts the number of hard questions answered
+        "NO_HINT_TYPE_OF_ANSwER": {"CORRECT": 0, # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered correctly
+                                   "INCORRECT": 0} # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
+    }
 
-def parse_json(
-    response_pt, response_hl, id_latest_record_pt, id_latest_record_hl
+    parsed_response_trivia = json.loads(response_trivia.text)
+
+    for record in parsed_response_trivia:
+        if record["id"] > id_latest_record_trivia:
+            for element in record["propertyInstances"]:
+                try:
+                    if element["property"]["translationKey"] == "THROUGH_HINT":
+                        metrics["WITH_HINT"]["TRUE"]+=1
+                except Exception as e:
+                    print("!", e, "\n")
+                    
+
+
+    return metrics
+
+def parse_json_sugarvita(
+    response_pt, response_hl, id_latest_record_pt, id_latest_record_hl, 
 ) -> dict:
     metrics_per_session = {
         "SCORES": [],  # each position of the list will represent the score achieved after a playthrough
@@ -109,7 +136,7 @@ def parse_json(
                                     if (
                                         gameplaydata_dict["aborted"] == False
                                         and gameplaydata_dict["playerNr"] == 1
-                                    ):  # WE ARE ASSUMING THAT OUR PLAYER IS ALWAYS THE NR.1, EVEN WHEN THERE'S MORE PLAYERS PLAYING!
+                                    ):  # TODO: WE ARE ASSUMING THAT OUR PLAYER IS ALWAYS THE NR.1, EVEN WHEN THERE'S MORE PLAYERS PLAYING!
                                         for turn in gameplaydata_dict["turns"]:
                                             if (
                                                 turn["CurrentScore"] != 0
@@ -416,8 +443,10 @@ def reset_dictionary_values(some_dict) -> dict:
 def save_id_date_latest_record(response_pt, response_hl):
     parsed_response_pt = json.loads(response_pt.text)
     parsed_response_hl = json.loads(response_hl.text)
+    ##parsed_response_trivia = json.loads(response_trivia.text)
     id_latest_record_pt = parsed_response_pt[-1]["id"]
     id_latest_record_hl = parsed_response_hl[-1]["id"]
+    ##id_latest_record_trivia = parsed_response_trivia[-1]["id"]
     date_latest_record_miliseconds = parsed_response_pt[-1][
         "date"
     ]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
@@ -527,6 +556,14 @@ def get_health_literacy_score(metrics_overview_hl_normalized) -> float:
         "avg_glucose_critical_value_response": 0.15,
         "trips_to_hospital_per_game": 0.35,
         "avg_glucose_accuracy": 0.5,
+        #"easy_level":0.1
+        #"normal_level":0.2
+        #"difficult_level":0.3
+        #"use_hint":0.15
+        #"correct":0.3
+        
+        
+        #"incorrect":0.15
     }
 
     health_literacy_score = calculate_score(

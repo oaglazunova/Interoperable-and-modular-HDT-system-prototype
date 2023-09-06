@@ -168,3 +168,5 @@ secrets.csv
 .packagelock.json
 
 .package.json
+
+.app.py
