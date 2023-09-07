@@ -5,6 +5,11 @@ load_dotenv()
 player_id = str(os.getenv("PLAYER_ID"))
 auth_bearer = str(os.getenv("AUTHORIZATION_BEARER"))
 
+id_latest_record_pt = 0
+id_latest_record_hl = 0
+##id_latest_record_trivia = 0
+date_latest_record = 0 # TODO: SEE IF IT MAKES SENSE TO ONLY HAVE 1 DATE
+
 def get_digital_twin(player_id, auth_bearer, 
                      endpoint_pt="https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_PLAYTHROUGH",
                      endpoint_hl="https://api3-new.gamebus.eu/v2/players/{}/activities?gds=SUGARVITA_ENGAGEMENT_LOG_1", 
@@ -25,12 +30,15 @@ def get_digital_twin(player_id, auth_bearer,
     response_pt = requests.request(
         "GET", endpoint_pt, headers=headers, data=payload
     )
+
     response_hl = requests.request(
         "GET", endpoint_hl, headers=headers, data=payload
     )
     ##response_trivia = requests.request(
     ##    "GET", endpoint_trivia, headers=headers, data=payload
     ##)
+
+    print(response_pt)
 
     parsed_metrics_from_sugarvita = pt_hl.parse_json_sugarvita(
         response_pt, response_hl, id_latest_record_pt, id_latest_record_hl
@@ -75,12 +83,6 @@ def get_digital_twin(player_id, auth_bearer,
 
 
 if __name__ == "__main__":
-
-    id_latest_record_pt = 0
-    id_latest_record_hl = 0
-    ##id_latest_record_trivia = 0
-    date_latest_record = 0 # TODO: SEE IF IT MAKES SENSE TO ONLY HAVE 1 DATE
-
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
     # secrets = df.to_numpy()

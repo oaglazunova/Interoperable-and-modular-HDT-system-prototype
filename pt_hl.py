@@ -55,7 +55,7 @@ def parse_json_sugarvita(
     # print(parsed_response_hl[-1]) #last record
 
     for record in parsed_response_pt:
-        if record["id"] > id_latest_record_pt:
+        if record["id"] > id_latest_record_pt: 
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "SCORE":
@@ -570,7 +570,9 @@ def get_health_literacy_score(metrics_overview_hl_normalized) -> float:
         health_literacy_metrics_weights, metrics_overview_hl_normalized
     )
 
-    return health_literacy_score
+    health_literacy_score_dict={'Health Literacy': health_literacy_score}
+
+    return health_literacy_score_dict
 
 
 def get_player_types(metrics_overview_pt_normalized) -> dict:
