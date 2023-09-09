@@ -4,17 +4,22 @@ from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 import ast
 
-def parse_json_trivia(
-        response_trivia, id_latest_record_trivia
-) -> dict:
+
+def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
     metrics = {
-        "WITH_HINT": {"TRUE": 0, # counts the number of times questions were answered with a hint
-                 "FALSE": 0}, # counts the number of times questions were answere without a hint
-        "DIFFICULTY LEVEL": {"EASY": 0, # counts the number of easy questions answered 
-                             "NORMAL": 0, # counts the number of normal (intermediate) questions answered
-                             "HARD": 0}, # counts the number of hard questions answered
-        "NO_HINT_TYPE_OF_ANSwER": {"CORRECT": 0, # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered correctly
-                                   "INCORRECT": 0} # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
+        "WITH_HINT": {
+            "TRUE": 0,  # counts the number of times questions were answered with a hint
+            "FALSE": 0,
+        },  # counts the number of times questions were answered without a hint
+        "DIFFICULTY_LEVEL": {
+            "EASY": 0,  # counts the number of easy questions answered
+            "NORMAL": 0,  # counts the number of normal (intermediate) questions answered
+            "HARD": 0,
+        },  # counts the number of hard questions answered
+        "NO_HINT_TYPE_OF_ANSwER": {
+            "CORRECT": 0,  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered correctly
+            "INCORRECT": 0,
+        },  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
     }
 
     parsed_response_trivia = json.loads(response_trivia.text)
@@ -24,16 +29,17 @@ def parse_json_trivia(
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "THROUGH_HINT":
-                        metrics["WITH_HINT"]["TRUE"]+=1
+                        metrics["WITH_HINT"]["TRUE"] += 1
                 except Exception as e:
                     print("!", e, "\n")
-                    
-
-
     return metrics
 
+
 def parse_json_sugarvita(
-    response_pt, response_hl, id_latest_record_pt, id_latest_record_hl, 
+    response_pt,
+    response_hl,
+    id_latest_record_pt,
+    id_latest_record_hl,
 ) -> dict:
     metrics_per_session = {
         "SCORES": [],  # each position of the list will represent the score achieved after a playthrough
@@ -52,10 +58,11 @@ def parse_json_sugarvita(
 
     parsed_response_pt = json.loads(response_pt.text)
     parsed_response_hl = json.loads(response_hl.text)
-    # print(parsed_response_hl[-1]) #last record
+    #print("[-1]", 
+    #      parsed_response_hl[-1]) #last record
 
     for record in parsed_response_pt:
-        if record["id"] > id_latest_record_pt: 
+        if record["id"] > id_latest_record_pt:
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "SCORE":
@@ -77,8 +84,10 @@ def parse_json_sugarvita(
                         metrics_per_session["GLUCOSE_ACCURACY"].append(
                             int(element["value"])
                         )
-                except:
-                    continue  # not all records will have the glucose_range_percentage as this property was recently created
+                except Exception as e:
+                    print(
+                        "!", e, "\n"
+                    )  # not all records will have the glucose_range_percentage as this property was recently created
 
                 try:
                     if element["property"]["translationKey"] == "PLAYTHROUGH_DATA":
@@ -215,7 +224,7 @@ def parse_json_sugarvita(
         metrics_per_session["GLUCOSE_LEVELS"], metrics_per_session["TURN_TIME"]
     )
 
-    return metrics_per_session
+    return metrics_per_session, parsed_response_hl[-1]
 
 
 def get_glucose_critical_value_response(glucose_levels, times):
@@ -439,26 +448,42 @@ def reset_dictionary_values(some_dict) -> dict:
 
     return some_dict
 
-
-def save_id_date_latest_record(response_pt, response_hl):
-    parsed_response_pt = json.loads(response_pt.text)
-    parsed_response_hl = json.loads(response_hl.text)
-    ##parsed_response_trivia = json.loads(response_trivia.text)
-    id_latest_record_pt = parsed_response_pt[-1]["id"]
-    id_latest_record_hl = parsed_response_hl[-1]["id"]
-    ##id_latest_record_trivia = parsed_response_trivia[-1]["id"]
-    date_latest_record_miliseconds = parsed_response_pt[-1][
-        "date"
-    ]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
+def format_date(date_miliseconds) -> str:
     date_latest_record_object = datetime.fromtimestamp(
-        date_latest_record_miliseconds / 1000
+        date_miliseconds / 1000
     )  # create a datetime object from the timestamp
-    date_latest_record = date_latest_record_object.strftime(
+    date_formatted = date_latest_record_object.strftime(
         "%d-%m-%y"
     )  # format the datetime object into "dd-mm-yy"
 
-    return id_latest_record_pt, id_latest_record_hl, date_latest_record
+    return date_formatted
 
+
+def save_id_date_latest_record(response_pt, response_hl, response_trivia):
+    #print(response_pt.text)
+
+    parsed_response_pt = json.loads(response_pt.text)
+    parsed_response_hl = json.loads(response_hl.text)
+    parsed_response_trivia = json.loads(response_trivia.text)
+
+    #print("Parsed response trivia last item: ", parsed_response_trivia )
+
+    id_latest_record_pt = parsed_response_pt[-1]["id"]
+    id_latest_record_hl = parsed_response_hl[-1]["id"]
+    id_latest_record_trivia = parsed_response_trivia[-1]["id"]
+    date_latest_record_sugarvita_miliseconds = parsed_response_pt[-1]["date"]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
+    date_latest_record_trivia_miliseconds = parsed_response_pt[-1]["date"]
+
+    date_latest_record_sugarvita = format_date(date_latest_record_sugarvita_miliseconds)
+    date_latest_record_trivia = format_date(date_latest_record_trivia_miliseconds)
+
+    return (
+        id_latest_record_pt,
+        id_latest_record_hl,
+        id_latest_record_trivia,
+        date_latest_record_sugarvita,
+        date_latest_record_trivia
+    )
 
 def remove_nan(metrics) -> list:
     # using list comprehension to perform the task
@@ -468,8 +493,54 @@ def remove_nan(metrics) -> list:
     return metrics
 
 
-def manipulate_initial_metrics(metrics_cleaned) -> dict:
-    metrics_overview_pt = {
+def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
+    metrics_overview_hl_trivia = {
+        "avg_hint": 0,
+        "avg_easy": 0,
+        "avg_normal": 0,
+        "avg_hard": 0,
+        "avg_correct": 0,
+        "avg_incorrect": 0,
+    }
+
+    total_trivia_answers = (
+        metrics_cleaned["WITH_HINT"]["TRUE"] + metrics_cleaned["WITH_HINT"]["FALSE"]
+    )
+
+    for key in metrics_cleaned.keys():
+        if key == "WITH_HINT":
+            metrics_overview_hl_trivia["avg_hint"] = (
+                metrics_cleaned["WITH_HINT"]["TRUE"] / total_trivia_answers
+            )
+        if key == "DIFFICULTY LEVEL":
+            metrics_overview_hl_trivia["avg_easy"] = (
+                metrics_cleaned["DIFFICULTY_LEVEL"]["EASY"] / total_trivia_answers
+            )
+            metrics_overview_hl_trivia["avg_normal"] = (
+                metrics_cleaned["DIFFICULTY_LEVEL"]["NORMAL"] / total_trivia_answers
+            )
+            metrics_overview_hl_trivia["avg_hard"] = (
+                metrics_cleaned["DIFFICULTY_LEVEL"]["HARD"] / total_trivia_answers
+            )
+        if key == "NO_HINT_TYPE_OF_ANSwER":
+            if metrics_cleaned["WITH_HINT"]["FALSE"]==0:
+                metrics_overview_hl_trivia["avg_correct"] = 0
+                metrics_overview_hl_trivia["avg_incorrect"] = 0
+            else:
+                metrics_overview_hl_trivia["avg_incorrect"] = (
+                    metrics_cleaned["NO_HINT_TYPE_OF_ANSWER"]["INCORRECT"]
+                    / metrics_cleaned["WITH_HINT"]["FALSE"]
+                )
+                metrics_overview_hl_trivia["avg_correct"] = (
+                    metrics_cleaned["NO_HINT_TYPE_OF_ANSwER"]["CORRECT"]
+                    / metrics_cleaned["WITH_HINT"]["FALSE"]
+                )   
+
+    return metrics_overview_hl_trivia
+
+
+def manipulate_initial_metrics_sugarvita(metrics_cleaned) -> dict:
+    metrics_overview_pt_sugarvita = {
         "avg_score": 0,  # average of the scores from all sessions played
         "sd_score": 0,  # standard deviation """
         "avg_playtimes": 0,  # average of the playtimes """
@@ -484,7 +555,7 @@ def manipulate_initial_metrics(metrics_cleaned) -> dict:
         "total_outdoors_path": 0,  # """ outdoors path
     }
 
-    metrics_overview_hl = {
+    metrics_overview_hl_sugarvita = {
         "avg_glucose_critical_value_response": 0,  # average variation to get back to the green region (or the closes to the green region)
         "trips_to_hospital_per_game": 0,  # total trips to hospital / total number of games
         "avg_glucose_accuracy": 0,
@@ -493,39 +564,43 @@ def manipulate_initial_metrics(metrics_cleaned) -> dict:
     for key, value in metrics_cleaned.items():
         # PLAYER TYPES METRICS
         if key == "SCORES":
-            metrics_overview_pt["avg_score"] = round(mean(value), 2)
-            metrics_overview_pt["sd_score"] = round(pstdev(value), 2)
+            metrics_overview_pt_sugarvita["avg_score"] = round(mean(value), 2)
+            metrics_overview_pt_sugarvita["sd_score"] = round(pstdev(value), 2)
         elif key == "PLAYTIMES":
-            metrics_overview_pt["avg_playtimes"] = round(mean(value), 2)
-            metrics_overview_pt["sd_playtimes"] = round(pstdev(value), 2)
+            metrics_overview_pt_sugarvita["avg_playtimes"] = round(mean(value), 2)
+            metrics_overview_pt_sugarvita["sd_playtimes"] = round(pstdev(value), 2)
         elif key == "DAYS_PLAYED":
-            metrics_overview_pt["avg_days_session"] = round(mean(value), 2)
-            metrics_overview_pt["sd_days_session"] = round(pstdev(value), 2)
+            metrics_overview_pt_sugarvita["avg_days_session"] = round(mean(value), 2)
+            metrics_overview_pt_sugarvita["sd_days_session"] = round(pstdev(value), 2)
             for days in value:
                 if days == 1:
-                    metrics_overview_pt["1_day_session"] += 1
+                    metrics_overview_pt_sugarvita["1_day_session"] += 1
                 elif days == 2:
-                    metrics_overview_pt["2_days_session"] += 1
+                    metrics_overview_pt_sugarvita["2_days_session"] += 1
                 elif days == 3:
-                    metrics_overview_pt["3_days_session"] += 1
+                    metrics_overview_pt_sugarvita["3_days_session"] += 1
         elif key == "HOME_PATH":
-            metrics_overview_pt["total_home_path"] = sum(value)
+            metrics_overview_pt_sugarvita["total_home_path"] = sum(value)
         elif key == "WORK_PATH":
-            metrics_overview_pt["total_work_path"] = sum(value)
+            metrics_overview_pt_sugarvita["total_work_path"] = sum(value)
         elif key == "OUTDOORS_PATH":
-            metrics_overview_pt["total_outdoors_path"] = sum(value)
+            metrics_overview_pt_sugarvita["total_outdoors_path"] = sum(value)
 
         # HEALTH LITERACY METRICS
         elif key == "GLUCOSE_ACCURACY":
-            metrics_overview_hl["avg_glucose_accuracy"] = round(mean(value), 2)
-        elif key == "TOTAL_TRIPS_HOSPITAL":
-            metrics_overview_hl["trips_to_hospital_per_game"] = sum(value) / len(value)
-        elif key == "GLUCOSE_CRITICAL_VALUE_RESPONSE":
-            metrics_overview_hl["avg_glucose_critical_value_response"] = round(
+            metrics_overview_hl_sugarvita["avg_glucose_accuracy"] = round(
                 mean(value), 2
             )
+        elif key == "TOTAL_TRIPS_HOSPITAL":
+            metrics_overview_hl_sugarvita["trips_to_hospital_per_game"] = sum(
+                value
+            ) / len(value)
+        elif key == "GLUCOSE_CRITICAL_VALUE_RESPONSE":
+            metrics_overview_hl_sugarvita[
+                "avg_glucose_critical_value_response"
+            ] = round(mean(value), 2)
 
-    return metrics_overview_pt, metrics_overview_hl
+    return metrics_overview_pt_sugarvita, metrics_overview_hl_sugarvita
 
 
 def normalize_metrics(metrics_overview) -> dict:
@@ -544,35 +619,78 @@ def normalize_metrics(metrics_overview) -> dict:
 
 def calculate_score(
     weights, metrics_normalized
-):  # for player types and health literacy level
+) -> float:  # for player types and health literacy level
     score = 0
     for key, value in weights.items():
+        print(key)
         score += value * metrics_normalized[key]
     return score
 
 
-def get_health_literacy_score(metrics_overview_hl_normalized) -> float:
-    health_literacy_metrics_weights = {
+def get_health_literacy_score_trivia(metrics_overview_hl_trivia_normalized) -> float:
+    health_literacy_metrics_weights_trivia = {
+        "avg_hint": 0.15,
+        "avg_easy": 0.1,
+        "avg_normal": 0.2,
+        "avg_hard": 0.3,
+        "avg_correct": 0.35,
+        "avg_incorrect":0
+    }
+
+    health_literacy_score_trivia = calculate_score(
+        health_literacy_metrics_weights_trivia, metrics_overview_hl_trivia_normalized
+    )
+
+    health_literacy_score_dict = {
+        "Health Literacy Trivia": health_literacy_score_trivia
+    }
+
+    return health_literacy_score_dict
+
+
+def get_health_literacy_score_sugarvita(
+    metrics_overview_hl_sugarvita_normalized,
+) -> float:
+    health_literacy_metrics_weights_sugarvita = {
         "avg_glucose_critical_value_response": 0.15,
         "trips_to_hospital_per_game": 0.35,
         "avg_glucose_accuracy": 0.5,
-        #"easy_level":0.1
-        #"normal_level":0.2
-        #"difficult_level":0.3
-        #"use_hint":0.15
-        #"correct":0.3
-        
-        
-        #"incorrect":0.15
     }
 
-    health_literacy_score = calculate_score(
-        health_literacy_metrics_weights, metrics_overview_hl_normalized
+    health_literacy_score_sugarvita = calculate_score(
+        health_literacy_metrics_weights_sugarvita, metrics_overview_hl_sugarvita_normalized
     )
 
-    health_literacy_score_dict={'Health Literacy': health_literacy_score}
+    health_literacy_score_dict = {
+        "Health Literacy Sugarvita": health_literacy_score_sugarvita
+    }
 
     return health_literacy_score_dict
+
+
+def get_health_literacy_score_final(
+    health_literacy_score_sugarvita, health_literacy_score_trivia
+) -> dict:
+    health_literacy_weights = {
+        "Health Literacy Sugarvita": 0.4,
+        "Health Literacy Trivia": 0.6,
+    }
+
+    health_literacy_scores = {
+        "Health Literacy Sugarvita": health_literacy_score_sugarvita["Health Literacy Sugarvita"],
+        "Health Literacy Trivia": health_literacy_score_trivia["Health Literacy Trivia"],
+    }
+
+    health_literacy = calculate_score(health_literacy_weights, health_literacy_scores)
+
+    #scaler = MinMaxScaler()  # initializing the scaler
+    #health_literacy = scaler.fit_transform(
+    #    health_literacy
+    #)  # normalization -> so we get a value between 0 and 1; as the scores are <0 and the weights <0.
+
+    health_literacy = {"Health Literacy": health_literacy}
+
+    return health_literacy
 
 
 def get_player_types(metrics_overview_pt_normalized) -> dict:
