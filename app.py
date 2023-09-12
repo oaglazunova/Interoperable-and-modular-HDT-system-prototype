@@ -17,12 +17,17 @@ def get_scores(playerID):
 
     (
         player_types_labels,
+        health_literacy_score_sugarvita,
+        health_literacy_score_trivia,
         health_literacy_score,
+        metrics_overview_pt_sugarvita,
+        metrics_overview_hl_sugarvita,
+        metrics_overview_hl_trivia,
         response_pt,
         response_hl,
-        metrics_overview_pt,
-        metrics_overview_hl,
+        response_trivia
     ) = dt.get_digital_twin(playerID, token)
+
 
     scores_dict = {
         "player_types_labels": player_types_labels,
