@@ -534,7 +534,6 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
     )
 
     for key in metrics_cleaned.keys():
-        print(key)
         if key == "WITH_HINT":
             metrics_overview_hl_trivia["avg_hint"] = (
                 metrics_cleaned["WITH_HINT"]["TRUE"] / total_trivia_answers
