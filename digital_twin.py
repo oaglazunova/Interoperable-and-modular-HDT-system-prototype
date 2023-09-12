@@ -76,23 +76,25 @@ def get_digital_twin(player_id, auth_bearer,
         parsed_metrics_from_trivia = pt_hl.parse_json_trivia(
         response_trivia, id_latest_record_trivia)
         print(parsed_metrics_from_trivia)
-        
+
         if metrics_overview_hl_trivia==None:
             print("initial trivia")
-            (
-            metrics_overview_hl_trivia
-        ) = pt_hl.manipulate_initial_metrics_trivia(parsed_metrics_from_trivia)
+            metrics_overview_hl_trivia = pt_hl.manipulate_initial_metrics_trivia(parsed_metrics_from_trivia)
+            print("overview trivia:", metrics_overview_hl_trivia)
         else:
             print(id_latest_record_trivia,"!=",(json.loads(response_trivia.text))[-1]["id"])
-            (
-            metrics_overview_hl_trivia_new_data
-        ) = pt_hl.manipulate_initial_metrics_trivia(parsed_metrics_from_trivia)
+            metrics_overview_hl_trivia_new_data = pt_hl.manipulate_initial_metrics_trivia(parsed_metrics_from_trivia)
             metrics_overview_hl_trivia = pt_hl.update_metrics_overview(metrics_overview_hl_trivia, metrics_overview_hl_trivia_new_data)
+            print("old metrics:", metrics_overview_hl_trivia)
+            print("new metrics:",  metrics_overview_hl_trivia_new_data)
             print("updated metrics:", metrics_overview_hl_trivia)
         
         metrics_overview_hl_trivia_normalized = pt_hl.normalize_metrics(metrics_overview_hl_trivia)
+        print("normalized metrics:", metrics_overview_hl_trivia_normalized)
         health_literacy_score_trivia = pt_hl.get_health_literacy_score_trivia(metrics_overview_hl_trivia_normalized)
+        print("trivia HL score:", health_literacy_score_trivia)
         health_literacy_score = pt_hl.get_health_literacy_score_final(health_literacy_score_sugarvita, health_literacy_score_trivia)
+        print("final HL:", health_literacy_score)
 
     elif id_latest_record_trivia==int((json.loads(response_trivia.text))[-1]["id"]) and (id_latest_record_pt!=int((json.loads(response_pt.text))[-1]["id"])):
         health_literacy_score = pt_hl.get_health_literacy_score_final(health_literacy_score_sugarvita, health_literacy_score_trivia)

@@ -534,11 +534,12 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
     )
 
     for key in metrics_cleaned.keys():
+        print(key)
         if key == "WITH_HINT":
             metrics_overview_hl_trivia["avg_hint"] = (
                 metrics_cleaned["WITH_HINT"]["TRUE"] / total_trivia_answers
             )
-        if key == "DIFFICULTY LEVEL":
+        if key == "DIFFICULTY_LEVEL":
             metrics_overview_hl_trivia["avg_easy"] = (
                 metrics_cleaned["DIFFICULTY_LEVEL"]["EASY"] / total_trivia_answers
             )
@@ -548,7 +549,7 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
             metrics_overview_hl_trivia["avg_hard"] = (
                 metrics_cleaned["DIFFICULTY_LEVEL"]["HARD"] / total_trivia_answers
             )
-        if key == "NO_HINT_TYPE_OF_ANSwER":
+        if key == "NO_HINT_TYPE_OF_ANSWER":
             if metrics_cleaned["WITH_HINT"]["FALSE"]==0:
                 metrics_overview_hl_trivia["avg_correct"] = 0
                 metrics_overview_hl_trivia["avg_incorrect"] = 0
@@ -558,7 +559,7 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
                     / metrics_cleaned["WITH_HINT"]["FALSE"]
                 )
                 metrics_overview_hl_trivia["avg_correct"] = (
-                    metrics_cleaned["NO_HINT_TYPE_OF_ANSwER"]["CORRECT"]
+                    metrics_cleaned["NO_HINT_TYPE_OF_ANSWER"]["CORRECT"]
                     / metrics_cleaned["WITH_HINT"]["FALSE"]
                 )   
 
