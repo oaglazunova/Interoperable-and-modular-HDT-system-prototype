@@ -16,7 +16,7 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
             "NORMAL": 0,  # counts the number of normal (intermediate) questions answered
             "HARD": 0,
         },  # counts the number of hard questions answered
-        "NO_HINT_TYPE_OF_ANSwER": {
+        "NO_HINT_TYPE_OF_ANSWER": {
             "CORRECT": 0,  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered correctly
             "INCORRECT": 0,
         },  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
@@ -29,9 +29,35 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "THROUGH_HINT":
-                        metrics["WITH_HINT"]["TRUE"] += 1
+                        if element["value"]=="true":
+                            metrics["WITH_HINT"]["TRUE"] += 1
+                        elif element["value"]=="false":
+                            metrics["WITH_HINT"]["FALSE"]+=1
+                            through_hint=False
                 except Exception as e:
                     print("!", e, "\n")
+                try:
+                    if element["property"]["translationKey"] == "QUESTION_CORRECT" and through_hint==False:
+                        if element["value"]=="true":
+                            metrics["NO_HINT_TYPE_OF_ANSWER"]["CORRECT"]+=1
+                        elif element["value"]=="false":
+                            metrics["NO_HINT_TYPE_OF_ANSWER"]["INCORRECT"]+=1
+                        through_hint=True
+                except Exception as e:
+                    print("!", e, "\n")
+
+                
+                try:
+                    if element["property"]["translationKey"] == "DIFFICULTY_LIKERT_3":
+                        if element["value"] == "-1":
+                            metrics["DIFFICULTY_LEVEL"]["EASY"] += 1
+                        elif element["value"] == "0":
+                            metrics["DIFFICULTY_LEVEL"]["NORMAL"] += 1
+                        elif element["value"] == "1":
+                            metrics["DIFFICULTY_LEVEL"]["HARD"] +=1 
+                except Exception as e:
+                    print("!", e, "\n")
+                    
     return metrics
 
 
@@ -224,7 +250,7 @@ def parse_json_sugarvita(
         metrics_per_session["GLUCOSE_LEVELS"], metrics_per_session["TURN_TIME"]
     )
 
-    return metrics_per_session, parsed_response_hl[-1]
+    return metrics_per_session #, parsed_response_hl[-1]
 
 
 def get_glucose_critical_value_response(glucose_levels, times):
@@ -453,8 +479,8 @@ def format_date(date_miliseconds) -> str:
         date_miliseconds / 1000
     )  # create a datetime object from the timestamp
     date_formatted = date_latest_record_object.strftime(
-        "%d-%m-%y"
-    )  # format the datetime object into "dd-mm-yy"
+        "%d-%m-%Y"
+    )  # format the datetime object into "dd-mm-yyyy"
 
     return date_formatted
 
@@ -472,7 +498,7 @@ def save_id_date_latest_record(response_pt, response_hl, response_trivia):
     id_latest_record_hl = parsed_response_hl[-1]["id"]
     id_latest_record_trivia = parsed_response_trivia[-1]["id"]
     date_latest_record_sugarvita_miliseconds = parsed_response_pt[-1]["date"]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
-    date_latest_record_trivia_miliseconds = parsed_response_pt[-1]["date"]
+    date_latest_record_trivia_miliseconds = parsed_response_trivia[-1]["date"]
 
     date_latest_record_sugarvita = format_date(date_latest_record_sugarvita_miliseconds)
     date_latest_record_trivia = format_date(date_latest_record_trivia_miliseconds)
@@ -622,7 +648,6 @@ def calculate_score(
 ) -> float:  # for player types and health literacy level
     score = 0
     for key, value in weights.items():
-        print(key)
         score += value * metrics_normalized[key]
     return score
 

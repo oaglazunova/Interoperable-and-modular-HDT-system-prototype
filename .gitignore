@@ -165,7 +165,7 @@ secrets.csv
 
 .env
 
-.packagelock.json
+.package-lock.json
 
 .package.json
 
