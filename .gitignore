@@ -165,12 +165,13 @@ secrets.csv
 
 .env
 
-.package-lock.json
+package-lock.json
+package.json
 
-.package.json
-
-.trivia.json
-.engagement.json
-.playthrough.json
+trivia.json
+engagement.json
+playthrough.json
 
 .app.py
+
+logging.log

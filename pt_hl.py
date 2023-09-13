@@ -2,6 +2,7 @@ import json
 from statistics import mean, pstdev
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
+from log import logger
 import ast
 
 
@@ -35,6 +36,7 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                             metrics["WITH_HINT"]["FALSE"] += 1
                             through_hint = False
                 except Exception as e:
+                    logger.warning('An exception occurred: %s', str(e), "\n")
                     print("!", e, "\n")
                 try:
                     if (
@@ -47,6 +49,7 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                             metrics["NO_HINT_TYPE_OF_ANSWER"]["INCORRECT"] += 1
                         through_hint = True
                 except Exception as e:
+                    logger.warning('An exception occurred: %s', str(e), "\n")
                     print("!", e, "\n")
 
                 try:
@@ -58,6 +61,7 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                         elif element["value"] == "1":
                             metrics["DIFFICULTY_LEVEL"]["HARD"] += 1
                 except Exception as e:
+                    logger.warning('An exception occurred: %s', str(e), "\n")
                     print("!", e, "\n")
 
     return metrics
@@ -113,6 +117,7 @@ def parse_json_sugarvita(
                             int(element["value"])
                         )
                 except Exception as e:
+                    logger.warning('An exception occurred: %s', str(e), "\n")
                     print(
                         "!", e, "\n"
                     )  # not all records will have the glucose_range_percentage as this property was recently created
@@ -241,9 +246,11 @@ def parse_json_sugarvita(
                                     )
 
                         except Exception as e:
+                            logger.warning('An exception occurred: %s', str(e), "\n")
                             print("!", e, "\n")
 
                 except Exception as e:
+                    logger.warning('An exception occurred: %s', str(e), "\n")
                     print("!", e, "\n")
 
     metrics_per_session[

@@ -1,6 +1,10 @@
 import requests, pt_hl, time, json, os
 from datetime import datetime
 from dotenv import load_dotenv
+from log import logger
+import atexit
+import signal
+import sys
 
 id_latest_record_pt = 0
 id_latest_record_hl = 0
@@ -8,6 +12,18 @@ id_latest_record_trivia = 0
 date_latest_record_sugarvita = 0
 date_latest_record_trivia = 0
 
+def log_start():
+    logger.info('Program started.')
+
+def log_exit():
+    logger.info('Program interrupted or exited.')
+atexit.register(log_exit)
+
+# Register a signal handler for common interrupts (e.g., Ctrl+C)
+def signal_handler(sig, frame):
+    log_exit()
+    sys.exit(1)
+signal.signal(signal.SIGINT, signal_handler)
 
 def get_digital_twin(
     player_id,
@@ -150,6 +166,7 @@ if __name__ == "__main__":
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
     # secrets = df.to_numpy()
+    log_start()
 
     load_dotenv()
     player_id = str(os.getenv("PLAYER_ID"))
