@@ -62,6 +62,7 @@ def get_digital_twin(
         logger.error("Failed to retrieve response_trivia: %s", str(e), "\n")
 
 
+    
     if id_latest_record_pt == 0 or (
         id_latest_record_pt != int((json.loads(response_pt.text))[-1]["id"])
     ):
@@ -73,6 +74,7 @@ def get_digital_twin(
             parsed_metrics_from_sugarvita
         )  # ONLY NEEDED FOR THE DATA THAT COMES FROM SUGARVITA
 
+
         if (
             metrics_overview_pt_sugarvita == None
             and metrics_overview_hl_sugarvita == None
@@ -81,6 +83,9 @@ def get_digital_twin(
                 metrics_overview_pt_sugarvita,
                 metrics_overview_hl_sugarvita,
             ) = pt_hl.manipulate_initial_metrics_sugarvita(parsed_metrics_cleaned)
+
+            
+
         else:
             # print(id_latest_record_pt,"!=",(json.loads(response_pt.text))[-1]["id"])
             (
@@ -107,6 +112,8 @@ def get_digital_twin(
             metrics_overview_hl_sugarvita_normalized
         )
 
+        
+    
     if id_latest_record_trivia == 0 or (
         id_latest_record_trivia != int((json.loads(response_trivia.text))[-1]["id"])
     ):
@@ -120,6 +127,7 @@ def get_digital_twin(
                 parsed_metrics_from_trivia
             )
             # print("overview trivia:", metrics_overview_hl_trivia)
+
         else:
             # print(id_latest_record_trivia,"!=",(json.loads(response_trivia.text))[-1]["id"])
             metrics_overview_hl_trivia_new_data = (
@@ -144,49 +152,41 @@ def get_digital_twin(
             health_literacy_score_sugarvita, health_literacy_score_trivia
         )
         # print("final HL:", health_literacy_score)
-
+    
     elif id_latest_record_trivia == int(
         (json.loads(response_trivia.text))[-1]["id"]
     ) and (id_latest_record_pt != int((json.loads(response_pt.text))[-1]["id"])):
         health_literacy_score = pt_hl.get_health_literacy_score_final(
             health_literacy_score_sugarvita, health_literacy_score_trivia
         )
+    
+    return player_types_labels, health_literacy_score_sugarvita, health_literacy_score_trivia, health_literacy_score, metrics_overview_pt_sugarvita, metrics_overview_hl_sugarvita, metrics_overview_hl_trivia, response_pt, response_hl, response_trivia
 
-    return (
-        player_types_labels,
-        health_literacy_score_sugarvita,
-        health_literacy_score_trivia,
-        health_literacy_score,
-        metrics_overview_pt_sugarvita,
-        metrics_overview_hl_sugarvita,
-        metrics_overview_hl_trivia,
-        response_pt,
-        response_hl,
-        response_trivia,
-    )
+
+def log_start():
+    logger.info('Program started.')
+
+def log_exit():
+    logger.info('Program interrupted or exited.')
+    
+
+# Register a signal handler for common interrupts (e.g., Ctrl+C)
+def signal_handler(sig, frame):
+    log_exit()
+    sys.exit(1)
 
 
 if __name__ == "__main__":
-    def log_start():
-        logger.info('Program started.')
-
-    def log_exit():
-        logger.info('Program interrupted or exited.')
-    atexit.register(log_exit)
-
-    # Register a signal handler for common interrupts (e.g., Ctrl+C)
-    def signal_handler(sig, frame):
-        log_exit()
-        sys.exit(1)
-    signal.signal(signal.SIGINT, signal_handler)
-
-
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
     # secrets = df.to_numpy()
     log_start()
 
     load_dotenv()
+
+    atexit.register(log_exit)
+    signal.signal(signal.SIGINT, signal_handler)
+
     player_id = str(os.getenv("PLAYER_ID"))
     auth_bearer = str(os.getenv("AUTHORIZATION_BEARER"))
 

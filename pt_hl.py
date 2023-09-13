@@ -37,7 +37,6 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                             through_hint = False
                 except Exception as e:
                     logger.warning('An exception occurred: %s', str(e), "\n")
-                    print("!", e, "\n")
                 try:
                     if (
                         element["property"]["translationKey"] == "QUESTION_CORRECT"
@@ -50,7 +49,6 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                         through_hint = True
                 except Exception as e:
                     logger.warning('An exception occurred: %s', str(e), "\n")
-                    print("!", e, "\n")
 
                 try:
                     if element["property"]["translationKey"] == "DIFFICULTY_LIKERT_3":
@@ -62,7 +60,6 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                             metrics["DIFFICULTY_LEVEL"]["HARD"] += 1
                 except Exception as e:
                     logger.warning('An exception occurred: %s', str(e), "\n")
-                    print("!", e, "\n")
 
     return metrics
 
@@ -117,10 +114,7 @@ def parse_json_sugarvita(
                             int(element["value"])
                         )
                 except Exception as e:
-                    logger.warning('An exception occurred: %s', str(e), "\n")
-                    print(
-                        "!", e, "\n"
-                    )  # not all records will have the glucose_range_percentage as this property was recently created
+                    logger.warning('An exception occurred: %s', str(e), "\n")# not all records will have the glucose_range_percentage as this property was recently created
 
                 try:
                     if element["property"]["translationKey"] == "PLAYTHROUGH_DATA":
@@ -247,11 +241,9 @@ def parse_json_sugarvita(
 
                         except Exception as e:
                             logger.warning('An exception occurred: %s', str(e), "\n")
-                            print("!", e, "\n")
 
                 except Exception as e:
                     logger.warning('An exception occurred: %s', str(e), "\n")
-                    print("!", e, "\n")
 
     metrics_per_session[
         "GLUCOSE_CRITICAL_VALUE_RESPONSE"
