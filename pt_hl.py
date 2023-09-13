@@ -29,24 +29,26 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
             for element in record["propertyInstances"]:
                 try:
                     if element["property"]["translationKey"] == "THROUGH_HINT":
-                        if element["value"]=="true":
+                        if element["value"] == "true":
                             metrics["WITH_HINT"]["TRUE"] += 1
-                        elif element["value"]=="false":
-                            metrics["WITH_HINT"]["FALSE"]+=1
-                            through_hint=False
+                        elif element["value"] == "false":
+                            metrics["WITH_HINT"]["FALSE"] += 1
+                            through_hint = False
                 except Exception as e:
                     print("!", e, "\n")
                 try:
-                    if element["property"]["translationKey"] == "QUESTION_CORRECT" and through_hint==False:
-                        if element["value"]=="true":
-                            metrics["NO_HINT_TYPE_OF_ANSWER"]["CORRECT"]+=1
-                        elif element["value"]=="false":
-                            metrics["NO_HINT_TYPE_OF_ANSWER"]["INCORRECT"]+=1
-                        through_hint=True
+                    if (
+                        element["property"]["translationKey"] == "QUESTION_CORRECT"
+                        and through_hint == False
+                    ):
+                        if element["value"] == "true":
+                            metrics["NO_HINT_TYPE_OF_ANSWER"]["CORRECT"] += 1
+                        elif element["value"] == "false":
+                            metrics["NO_HINT_TYPE_OF_ANSWER"]["INCORRECT"] += 1
+                        through_hint = True
                 except Exception as e:
                     print("!", e, "\n")
 
-                
                 try:
                     if element["property"]["translationKey"] == "DIFFICULTY_LIKERT_3":
                         if element["value"] == "-1":
@@ -54,10 +56,10 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                         elif element["value"] == "0":
                             metrics["DIFFICULTY_LEVEL"]["NORMAL"] += 1
                         elif element["value"] == "1":
-                            metrics["DIFFICULTY_LEVEL"]["HARD"] +=1 
+                            metrics["DIFFICULTY_LEVEL"]["HARD"] += 1
                 except Exception as e:
                     print("!", e, "\n")
-                    
+
     return metrics
 
 
@@ -84,7 +86,7 @@ def parse_json_sugarvita(
 
     parsed_response_pt = json.loads(response_pt.text)
     parsed_response_hl = json.loads(response_hl.text)
-    #print("[-1]", 
+    # print("[-1]",
     #      parsed_response_hl[-1]) #last record
 
     for record in parsed_response_pt:
@@ -250,7 +252,7 @@ def parse_json_sugarvita(
         metrics_per_session["GLUCOSE_LEVELS"], metrics_per_session["TURN_TIME"]
     )
 
-    return metrics_per_session #, parsed_response_hl[-1]
+    return metrics_per_session  # , parsed_response_hl[-1]
 
 
 def get_glucose_critical_value_response(glucose_levels, times):
@@ -474,6 +476,7 @@ def reset_dictionary_values(some_dict) -> dict:
 
     return some_dict
 
+
 def format_date(date_miliseconds) -> str:
     date_latest_record_object = datetime.fromtimestamp(
         date_miliseconds / 1000
@@ -486,18 +489,25 @@ def format_date(date_miliseconds) -> str:
 
 
 def save_id_date_latest_record(response_pt, response_hl, response_trivia):
-    #print(response_pt.text)
+    # print(response_pt.text)
+    #TODO once the new data for sugarvita coming in is tested, ignore the "try"/"except" and only keep what's inside the "try"
+    try:
+        parsed_response_pt = json.loads(response_pt.text)
+        parsed_response_hl = json.loads(response_hl.text)
+        parsed_response_trivia = json.loads(response_trivia.text)
+    except:
+        parsed_response_pt = json.loads(response_pt)
+        parsed_response_hl = json.loads(response_hl)
+        parsed_response_trivia = json.loads(response_trivia)
 
-    parsed_response_pt = json.loads(response_pt.text)
-    parsed_response_hl = json.loads(response_hl.text)
-    parsed_response_trivia = json.loads(response_trivia.text)
-
-    #print("Parsed response trivia last item: ", parsed_response_trivia )
+    # print("Parsed response trivia last item: ", parsed_response_trivia )
 
     id_latest_record_pt = parsed_response_pt[-1]["id"]
     id_latest_record_hl = parsed_response_hl[-1]["id"]
     id_latest_record_trivia = parsed_response_trivia[-1]["id"]
-    date_latest_record_sugarvita_miliseconds = parsed_response_pt[-1]["date"]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
+    date_latest_record_sugarvita_miliseconds = parsed_response_pt[-1][
+        "date"
+    ]  # date in miliseconds; we want it in the format "dd-mm-yyyy"
     date_latest_record_trivia_miliseconds = parsed_response_trivia[-1]["date"]
 
     date_latest_record_sugarvita = format_date(date_latest_record_sugarvita_miliseconds)
@@ -508,8 +518,9 @@ def save_id_date_latest_record(response_pt, response_hl, response_trivia):
         id_latest_record_hl,
         id_latest_record_trivia,
         date_latest_record_sugarvita,
-        date_latest_record_trivia
+        date_latest_record_trivia,
     )
+
 
 def remove_nan(metrics) -> list:
     # using list comprehension to perform the task
@@ -549,7 +560,7 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
                 metrics_cleaned["DIFFICULTY_LEVEL"]["HARD"] / total_trivia_answers
             )
         if key == "NO_HINT_TYPE_OF_ANSWER":
-            if metrics_cleaned["WITH_HINT"]["FALSE"]==0:
+            if metrics_cleaned["WITH_HINT"]["FALSE"] == 0:
                 metrics_overview_hl_trivia["avg_correct"] = 0
                 metrics_overview_hl_trivia["avg_incorrect"] = 0
             else:
@@ -560,7 +571,7 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
                 metrics_overview_hl_trivia["avg_correct"] = (
                     metrics_cleaned["NO_HINT_TYPE_OF_ANSWER"]["CORRECT"]
                     / metrics_cleaned["WITH_HINT"]["FALSE"]
-                )   
+                )
 
     return metrics_overview_hl_trivia
 
@@ -659,7 +670,7 @@ def get_health_literacy_score_trivia(metrics_overview_hl_trivia_normalized) -> f
         "avg_normal": 0.2,
         "avg_hard": 0.3,
         "avg_correct": 0.35,
-        "avg_incorrect":0
+        "avg_incorrect": -1,
     }
 
     health_literacy_score_trivia = calculate_score(
@@ -678,12 +689,13 @@ def get_health_literacy_score_sugarvita(
 ) -> float:
     health_literacy_metrics_weights_sugarvita = {
         "avg_glucose_critical_value_response": 0.15,
-        "trips_to_hospital_per_game": 0.35,
-        "avg_glucose_accuracy": 0.5,
+        "trips_to_hospital_per_game": -1,
+        "avg_glucose_accuracy": 0.85,
     }
 
     health_literacy_score_sugarvita = calculate_score(
-        health_literacy_metrics_weights_sugarvita, metrics_overview_hl_sugarvita_normalized
+        health_literacy_metrics_weights_sugarvita,
+        metrics_overview_hl_sugarvita_normalized,
     )
 
     health_literacy_score_dict = {
@@ -702,16 +714,20 @@ def get_health_literacy_score_final(
     }
 
     health_literacy_scores = {
-        "Health Literacy Sugarvita": health_literacy_score_sugarvita["Health Literacy Sugarvita"],
-        "Health Literacy Trivia": health_literacy_score_trivia["Health Literacy Trivia"],
+        "Health Literacy Sugarvita": health_literacy_score_sugarvita[
+            "Health Literacy Sugarvita"
+        ],
+        "Health Literacy Trivia": health_literacy_score_trivia[
+            "Health Literacy Trivia"
+        ],
     }
 
     health_literacy = calculate_score(health_literacy_weights, health_literacy_scores)
 
-    #scaler = MinMaxScaler()  # initializing the scaler
-    #health_literacy = scaler.fit_transform(
+    # scaler = MinMaxScaler()  # initializing the scaler
+    # health_literacy = scaler.fit_transform(
     #    health_literacy
-    #)  # normalization -> so we get a value between 0 and 1; as the scores are <0 and the weights <0.
+    # )  # normalization -> so we get a value between 0 and 1; as the scores are <0 and the weights <0.
 
     health_literacy = {"Health Literacy": health_literacy}
 

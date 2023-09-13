@@ -169,4 +169,8 @@ secrets.csv
 
 .package.json
 
+.trivia.json
+.engagement.json
+.playthrough.json
+
 .app.py

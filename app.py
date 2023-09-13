@@ -25,9 +25,8 @@ def get_scores(playerID):
         metrics_overview_hl_trivia,
         response_pt,
         response_hl,
-        response_trivia
+        response_trivia,
     ) = dt.get_digital_twin(playerID, token)
-
 
     scores_dict = {
         "player_types_labels": player_types_labels,
