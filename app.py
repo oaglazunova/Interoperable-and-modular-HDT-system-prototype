@@ -29,5 +29,3 @@ def get_scores(playerID):
         "health_literacy_score": health_literacy_score
     }
     return jsonify(scores), 200
-
-    #return jsonify(scores_dict), 200

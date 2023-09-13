@@ -5,6 +5,7 @@ from log import logger
 import atexit
 import signal
 import sys
+import csv
 
 id_latest_record_pt = 0
 id_latest_record_hl = 0
@@ -187,6 +188,11 @@ if __name__ == "__main__":
     atexit.register(log_exit)
     signal.signal(signal.SIGINT, signal_handler)
 
+    with open("digital_twin_results.csv", mode="w", newline='') as results:
+        writer = csv.writer(results)
+        writer.writerow(["Timestamp", "Health Literacy Score (SugarVita)", "Health Literacy Score (Trivia)", "Health Literacy Score", "Socializer Score", "Competitive Score", "Explorer Score"])
+
+
     player_id = str(os.getenv("PLAYER_ID"))
     auth_bearer = str(os.getenv("AUTHORIZATION_BEARER"))
 
@@ -227,6 +233,19 @@ if __name__ == "__main__":
             print(health_literacy_score_trivia)
             print(health_literacy_score)
             print(player_types_labels)
+
+            with open("digital_twin_results.csv", mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    datetime.now().strftime("%H:%M:%S"),
+                    health_literacy_score_sugarvita["Health Literacy Sugarvita"],
+                    health_literacy_score_trivia["Health Literacy Trivia"],
+                    health_literacy_score["Health Literacy"],
+                    player_types_labels["Socializer"],
+                    player_types_labels["Competitive"],
+                    player_types_labels["Explorer"]
+                ])
+
             time.sleep(
                 1 * 60
             )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
@@ -325,6 +344,19 @@ if __name__ == "__main__":
                 print(health_literacy_score_trivia)
                 print(health_literacy_score)
                 print(player_types_labels)
+
+                with open("digital_twin_results.csv", mode='a', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([
+                        datetime.now().strftime("%H:%M:%S"),
+                        health_literacy_score_sugarvita["Health Literacy Sugarvita"],
+                        health_literacy_score_trivia["Health Literacy Trivia"],
+                        health_literacy_score["Health Literacy"],
+                        player_types_labels["Socializer"],
+                        player_types_labels["Competitive"],
+                        player_types_labels["Explorer"]
+                    ])
+
                 id_latest_record_pt = id_new_latest_pt  # save the new id of the last record (will for sure change)
                 id_latest_record_hl = id_new_latest_hl
                 id_latest_record_trivia = id_new_latest_trivia
