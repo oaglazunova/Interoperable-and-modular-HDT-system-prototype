@@ -31,36 +31,19 @@ def get_digital_twin(
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
     # secrets = df.to_numpy()
+    endpoint_pt = endpoint_pt.format(player_id)
+    endpoint_hl = endpoint_hl.format(player_id)
+    endpoint_trivia = endpoint_trivia.format(player_id)
+
     payload = {}
     headers = {"Authorization": "Bearer {}".format(auth_bearer)}
 
-    try:
-        endpoint_pt = endpoint_pt.format(player_id)
-        response_pt = requests.request( 
-            "GET", endpoint_pt, headers=headers, data=payload
-        )
-        response_pt.raise_for_status() # raise exception for HTTP errors
-    except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_pt: %s", str(e), "\n")
-    
-    try:
-        endpoint_hl = endpoint_hl.format(player_id)
-        response_hl = requests.request(
-            "GET", endpoint_hl, headers=headers, data=payload
-        )
-        response_hl.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_hl: %s", str(e), "\n")
-    
-    try:
-        endpoint_trivia = endpoint_trivia.format(player_id)                
-        response_trivia = requests.request(
-            "GET", endpoint_trivia, headers=headers, data=payload
-        )
-        response_trivia.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_trivia: %s", str(e), "\n")
+    response_pt = requests.request("GET", endpoint_pt, headers=headers, data=payload)
 
+    response_hl = requests.request("GET", endpoint_hl, headers=headers, data=payload)
+    response_trivia = requests.request(
+        "GET", endpoint_trivia, headers=headers, data=payload
+    )
 
     if id_latest_record_pt == 0 or (
         id_latest_record_pt != int((json.loads(response_pt.text))[-1]["id"])
@@ -237,44 +220,29 @@ if __name__ == "__main__":
                 + str(date_latest_record_sugarvita)
                 + "&gds=SUGARVITA_PLAYTHROUGH"
             )
+            endpoint_pt = endpoint_filtered_pt.format(player_id)
             endpoint_filtered_hl = (
                 "https://api3-new.gamebus.eu/v2/players/{}/activities?start="
                 + str(date_latest_record_sugarvita)
                 + "&gds=SUGARVITA_ENGAGEMENT_LOG_1"
             )
+            endpoint_hl = endpoint_filtered_hl.format(player_id)
             endpoint_filtered_trivia = (
                 "https://api3-new.gamebus.eu/v2/players/{}/activities?start="
                 + str(date_latest_record_trivia)
                 + "&gds=ANSWER_TRIVIA_DIABETES"
             )
+            endpoint_trivia = endpoint_filtered_trivia.format(player_id)
 
-            try:
-                endpoint_pt = endpoint_filtered_pt.format(player_id)
-                response_pt = requests.request( 
-                    "GET", endpoint_pt, headers=headers, data=payload
-                )
-                response_pt.raise_for_status() # raise exception for HTTP errors
-            except requests.exceptions.RequestException as e:
-                logger.error("Failed to retrieve response_pt: %s", str(e), "\n")
-            
-            try:
-                endpoint_hl = endpoint_filtered_hl.format(player_id)
-                response_hl = requests.request(
-                    "GET", endpoint_hl, headers=headers, data=payload
-                )
-                response_hl.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                logger.error("Failed to retrieve response_hl: %s", str(e), "\n")
-            
-            try:
-                endpoint_trivia = endpoint_filtered_trivia.format(player_id)                
-                response_trivia = requests.request(
-                    "GET", endpoint_trivia, headers=headers, data=payload
-                )
-                response_trivia.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                logger.error("Failed to retrieve response_trivia: %s", str(e), "\n")
-
+            response_pt = requests.request(
+                "GET", endpoint_pt, headers=headers, data=payload
+            )
+            response_hl = requests.request(
+                "GET", endpoint_hl, headers=headers, data=payload
+            )
+            response_trivia = requests.request(
+                "GET", endpoint_trivia, headers=headers, data=payload
+            )
 
             (
                 id_new_latest_pt,
@@ -289,8 +257,11 @@ if __name__ == "__main__":
             if (
                 (id_latest_record_pt != id_new_latest_pt
                 or id_latest_record_trivia != id_new_latest_trivia) 
+                and (id_latest_record_pt-1 != id_new_latest_pt) #TODO delete after testing new data coming from sugarvita
 
             ):
+                print("id latest record pt:",  id_latest_record_pt)
+                print("id new latest pt:", id_new_latest_pt)
 
                 (
                     player_types_labels,
@@ -333,9 +304,76 @@ if __name__ == "__main__":
 
                 time.sleep(1 * 60)
             else:
-                print("No new records", (datetime.now()).strftime("%H:%M:%S"))
-                time.sleep(
-                    1 * 60
-                )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
-                # break
+                #TODO ONCE THIS PART IS TESTED, EVERYTHING CAN BE COMMENTED OR DELETED UP UNTIL THE PRINT("No new records"). Also, adjust possible changes in the indentation.
+                playthrough_possible_new_data = "playthrough.json"
+                with open(playthrough_possible_new_data, "r") as playthrough:
+                    playthrough_data = playthrough.read()
+
+                engagement_possible_new_data = "engagement.json"
+                with open(engagement_possible_new_data, "r") as engagement:
+                    engagement_data = engagement.read()
+                
+                trivia_possible_new_data = "trivia.json"
+                with open(trivia_possible_new_data, "r") as trivia:
+                    trivia_data = trivia.read()
+                
+                (
+                id_new_latest_pt,
+                id_new_latest_hl,
+                id_new_latest_trivia,
+                date_new_latest_record_sugarvita,
+                date_new_latest_record_trivia,
+                ) = pt_hl.save_id_date_latest_record(
+                playthrough_data, engagement_data, trivia_data
+                )
+
+                if ((id_latest_record_pt != id_new_latest_pt or id_latest_record_trivia != id_new_latest_trivia) and (id_latest_record_pt-1 != id_new_latest_pt)):
+                    (
+                        player_types_labels,
+                        health_literacy_score_sugarvita,
+                        health_literacy_score_trivia,
+                        health_literacy_score,
+                        metrics_overview_pt_sugarvita,
+                        metrics_overview_hl_sugarvita,
+                        metrics_overview_hl_trivia,
+                        response_pt,
+                        response_hl,
+                        response_trivia,
+                    ) = get_digital_twin(
+                        player_id,
+                        auth_bearer,
+                        endpoint_pt=endpoint_filtered_pt,  # endpoint pt filtered by date
+                        endpoint_hl=endpoint_filtered_hl,  # endpoint hl filtered by date
+                        endpoint_trivia=endpoint_filtered_trivia,  # endpoint trivia filtered by date
+                        id_latest_record_pt=id_latest_record_pt,
+                        id_latest_record_trivia=id_latest_record_trivia,
+                        metrics_overview_pt_sugarvita=metrics_overview_pt_sugarvita,
+                        metrics_overview_hl_sugarvita=metrics_overview_hl_sugarvita,
+                        metrics_overview_hl_trivia=metrics_overview_hl_trivia,
+                        player_types_labels=player_types_labels,
+                        health_literacy_score_sugarvita=health_literacy_score_sugarvita,
+                        health_literacy_score_trivia=health_literacy_score_trivia,
+                        health_literacy_score=health_literacy_score,
+                    )
+
+                    print((datetime.now()).strftime("%H:%M:%S"))
+                    print(health_literacy_score_sugarvita)
+                    print(health_literacy_score_trivia)
+                    print(health_literacy_score)
+                    print(player_types_labels)
+                    id_latest_record_pt = id_new_latest_pt  # save the new id of the last record (will for sure change)
+                    id_latest_record_hl = id_new_latest_hl
+                    id_latest_record_trivia = id_new_latest_trivia
+                    date_latest_record_sugarvita = date_new_latest_record_sugarvita
+                    date_latest_record_trivia = date_new_latest_record_trivia
+
+                    time.sleep(1 * 60)
+                
+
+                else:
+                    print("No new records", (datetime.now()).strftime("%H:%M:%S"))
+                    time.sleep(
+                        1 * 60
+                    )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+                    # break
 

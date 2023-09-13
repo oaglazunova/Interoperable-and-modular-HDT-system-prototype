@@ -497,9 +497,15 @@ def format_date(date_miliseconds) -> str:
 
 def save_id_date_latest_record(response_pt, response_hl, response_trivia):
     # print(response_pt.text)
-    parsed_response_pt = json.loads(response_pt.text)
-    parsed_response_hl = json.loads(response_hl.text)
-    parsed_response_trivia = json.loads(response_trivia.text)
+    #TODO once the new data for sugarvita coming in is tested, ignore the "try"/"except" and only keep what's inside the "try"
+    try:
+        parsed_response_pt = json.loads(response_pt.text)
+        parsed_response_hl = json.loads(response_hl.text)
+        parsed_response_trivia = json.loads(response_trivia.text)
+    except:
+        parsed_response_pt = json.loads(response_pt)
+        parsed_response_hl = json.loads(response_hl)
+        parsed_response_trivia = json.loads(response_trivia)
 
     # print("Parsed response trivia last item: ", parsed_response_trivia )
 
