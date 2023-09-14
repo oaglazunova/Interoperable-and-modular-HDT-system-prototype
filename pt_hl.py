@@ -650,9 +650,27 @@ def normalize_metrics(metrics_overview) -> dict:
 def calculate_score(
     weights, metrics_normalized
 ) -> float:  # for player types and health literacy level
-    score = 0
+    number_positive_features = 0
+    number_negative_features = 0
+    score_positive = 0
+    score_negative = 0
     for key, value in weights.items():
-        score += value * metrics_normalized[key]
+        if value > 0:
+            number_positive_features+=1
+            score_positive += value * metrics_normalized[key]
+        else:
+            number_negative_features+=1
+            score_negative += value * metrics_normalized[key]
+    if number_positive_features == number_negative_features:
+        score = score_positive + score_negative
+    elif number_positive_features < number_negative_features:
+        fairness_factor=1/(number_negative_features-number_positive_features+1)
+        fair_positive_score = score_positive * fairness_factor
+        score = fair_positive_score + score_negative
+    elif number_positive_features > number_negative_features:
+        fairness_factor=1/(number_positive_features-number_negative_features+1)
+        fair_negative_score = score_negative * fairness_factor
+        score = fair_negative_score + score_positive
     return score
 
 
