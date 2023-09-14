@@ -163,6 +163,8 @@ cython_debug/
 
 .vscode
 
+.csv
+
 secrets.csv
 digital_twin_results.csv
 

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 import digital_twin as dt
 
 app = Flask(__name__)
@@ -9,6 +9,10 @@ def get_scores(playerID):
     bearer_token = headers.get(
         "Authorization"
     )  # Extract the bearer token from the request headers --> Bearer Token
+    
+    if bearer_token is None:
+        abort(500)
+
     token = bearer_token.split()[1]  # JUST THE TOKEN (without "Bearer")
 
     (player_types_labels, 

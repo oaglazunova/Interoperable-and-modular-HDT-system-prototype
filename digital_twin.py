@@ -42,7 +42,8 @@ def get_digital_twin(
         )
         response_pt.raise_for_status() # raise exception for HTTP errors
     except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_pt: %s", str(e), "\n")
+        logger.error("Failed to retrieve response_pt: %s"+ str(e) +"\n")
+        #logger.error("Failed to retrieve response_pt:", str(e), "\n")
     
     try:
         endpoint_hl = endpoint_hl.format(player_id)
@@ -51,7 +52,7 @@ def get_digital_twin(
         )
         response_hl.raise_for_status()
     except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_hl: %s", str(e), "\n")
+        logger.error("Failed to retrieve response_hl: %s"+ str(e) +"\n")
     
     try:
         endpoint_trivia = endpoint_trivia.format(player_id)                
@@ -60,7 +61,7 @@ def get_digital_twin(
         )
         response_trivia.raise_for_status()
     except requests.exceptions.RequestException as e:
-        logger.error("Failed to retrieve response_trivia: %s", str(e), "\n")
+        logger.error("Failed to retrieve response_trivia: %s"+ str(e) +"\n")
 
 
     
@@ -177,28 +178,30 @@ def signal_handler(sig, frame):
     sys.exit(1)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-o", "--output", help="Path for the output CSV file.", type=str
-)
-parser.add_argument(
-    "-ro", "--runonce", help="For 1 result only, instead of running indefinetly", action="store_true"
-)
-#parser.add_argument(
-#    "-i", "--input", nargs=2, help="Run the digital twin of a player by inserting PlayerId and Authorization Token", type=(int, str)
-#)
-parser.add_argument(
-    "-t", "--time", help="Time interval, in minutes, to check for new data and possibly get new results.", type=int
-)
-args = parser.parse_args()
-
-
 if __name__ == "__main__":
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
     # secrets = df.to_numpy()
-    log_start()
+    """Beginning of Command Line Arguments definition
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-o", "--output", help="Path for the output CSV file.", type=str
+    )
+    parser.add_argument(
+        "-ro", "--runonce", help="For 1 result only, instead of running indefinetly", action="store_true"
+    )
+    #parser.add_argument(
+    #    "-i", "--input", nargs=2, help="Run the digital twin of a player by inserting PlayerId and Authorization Token", type=(int, str)
+    #)
+    parser.add_argument(
+        "-t", "--time", help="Time interval, in minutes, to check for new data and possibly get new results.", type=int
+    )
+    args = parser.parse_args()
+    """Ending of Command Line Arguments definition
+    """
 
+    log_start()
     load_dotenv()
 
     atexit.register(log_exit)
