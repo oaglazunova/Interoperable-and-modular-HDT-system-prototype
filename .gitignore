@@ -164,6 +164,7 @@ cython_debug/
 .vscode
 
 secrets.csv
+digital_twin_results.csv
 
 .env
 

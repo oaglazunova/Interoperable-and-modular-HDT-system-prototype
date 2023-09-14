@@ -1,4 +1,4 @@
-import requests, pt_hl, time, json, os
+import requests, pt_hl, time, json, os, argparse
 from datetime import datetime
 from dotenv import load_dotenv
 from log import logger
@@ -177,6 +177,22 @@ def signal_handler(sig, frame):
     sys.exit(1)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-o", "--output", help="Path for the output CSV file.", type=str
+)
+parser.add_argument(
+    "-ro", "--runonce", help="For 1 result only, instead of running indefinetly", action="store_true"
+)
+#parser.add_argument(
+#    "-i", "--input", nargs=2, help="Run the digital twin of a player by inserting PlayerId and Authorization Token", type=(int, str)
+#)
+parser.add_argument(
+    "-t", "--time", help="Time interval, in minutes, to check for new data and possibly get new results.", type=int
+)
+args = parser.parse_args()
+
+
 if __name__ == "__main__":
     # secrets_path = "secrets.csv"
     # df = pandas.read_csv(secrets_path)
@@ -188,7 +204,12 @@ if __name__ == "__main__":
     atexit.register(log_exit)
     signal.signal(signal.SIGINT, signal_handler)
 
-    with open("digital_twin_results.csv", mode="w", newline='') as results:
+    if args.output:
+        output_path=args.output
+    else:
+        output_path="digital_twin_results.csv"
+
+    with open(output_path, mode="w", newline='') as results:
         writer = csv.writer(results)
         writer.writerow(["Timestamp", "Health Literacy Score (SugarVita)", "Health Literacy Score (Trivia)", "Health Literacy Score", "Socializer Score", "Competitive Score", "Explorer Score"])
 
@@ -234,7 +255,12 @@ if __name__ == "__main__":
             print(health_literacy_score)
             print(player_types_labels)
 
-            with open("digital_twin_results.csv", mode='a', newline='') as file:
+            if args.output:
+                output_path=args.output
+            else:
+                output_path="digital_twin_results.csv"
+
+            with open(output_path, mode='a', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow([
                     datetime.now().strftime("%H:%M:%S"),
@@ -245,10 +271,21 @@ if __name__ == "__main__":
                     player_types_labels["Competitive"],
                     player_types_labels["Explorer"]
                 ])
+            
+            if args.runonce:
+                break
+            
+            if args.time:
+                time.sleep(
+                    args.time * 60
+                )
 
-            time.sleep(
-                1 * 60
-            )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+            else:
+                time.sleep(
+                    1 * 60
+                )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+
+            
 
         else:
             endpoint_filtered_pt = (
@@ -345,7 +382,12 @@ if __name__ == "__main__":
                 print(health_literacy_score)
                 print(player_types_labels)
 
-                with open("digital_twin_results.csv", mode='a', newline='') as file:
+                if args.output:
+                    output_path=args.output
+                else:
+                    output_path="digital_twin_results.csv"
+
+                with open(output_path, mode='a', newline='') as file:
                     writer = csv.writer(file)
                     writer.writerow([
                         datetime.now().strftime("%H:%M:%S"),
@@ -363,11 +405,22 @@ if __name__ == "__main__":
                 date_latest_record_sugarvita = date_new_latest_record_sugarvita
                 date_latest_record_trivia = date_new_latest_record_trivia
 
-                time.sleep(1 * 60)
+                if args.time:
+                    time.sleep(
+                        args.time * 60
+                    )
+                else:
+                    time.sleep(
+                        1 * 60
+                    )
             else:
                 print("No new records", (datetime.now()).strftime("%H:%M:%S"))
-                time.sleep(
-                    1 * 60
-                )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
-                # break
-
+                if args.time:
+                    time.sleep(
+                        args.time * 60
+                    )
+                else:
+                    time.sleep(
+                        1 * 60
+                    )  # 10*60 seconds --> 10 minutes --> it needs to be represented in seconds
+               
