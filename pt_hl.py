@@ -32,6 +32,7 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                     if element["property"]["translationKey"] == "THROUGH_HINT":
                         if element["value"] == "true":
                             metrics["WITH_HINT"]["TRUE"] += 1
+                            through_hint = True
                         elif element["value"] == "false":
                             metrics["WITH_HINT"]["FALSE"] += 1
                             through_hint = False
