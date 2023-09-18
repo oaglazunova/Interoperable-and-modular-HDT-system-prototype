@@ -191,9 +191,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-ro", "--runonce", help="For 1 result only, instead of running indefinetly", action="store_true"
     )
-    #parser.add_argument(
-    #    "-i", "--input", nargs=2, help="Run the digital twin of a player by inserting PlayerId and Authorization Token", type=(int, str)
-    #)
+    parser.add_argument(
+        "-id", "--playerid", help="Input the playerID to get the Digital Twin results", type=int, required=True
+    )
+    parser.add_argument(
+        "-tk", "--token", help="Input the secret token to get the Digital Twin results", type=str, required=True
+    )
     parser.add_argument(
         "-t", "--time", help="Time interval, in minutes, to check for new data and possibly get new results.", type=int
     )
