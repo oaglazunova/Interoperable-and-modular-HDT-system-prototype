@@ -33,8 +33,8 @@ This project is ready to be running as a command-line tool, as well as it is web
 Run `pip install -r requirements.text`
 
 ## Usage (command line)
-Run `python digital_twin.py -h` or `python digital_twin.py --help`
-Usage: `digital_twin.py [-h] [-o OUTPUT] [-ro] [-id PLAYERID] [-tk TOKEN] [-t TIME]`
+Run `python digital_twin.py -h` or `python digital_twin.py --help` <br>
+Usage `digital_twin.py [-h] [-o OUTPUT] [-ro] [-id PLAYERID] [-tk TOKEN] [-t TIME]` <br>
 
 Options: <br>
 `-h, --help show this help message and exit` <br>
