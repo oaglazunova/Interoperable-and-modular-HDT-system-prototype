@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/github/license/catolivetree/dissertation)
 ![Version](https://img.shields.io/badge/version-v0.1.0-blue?style=for-the-badge)
 
-By collecting data from an educational diabetes game (**SUGARVITA**), we are able to profile a diabetic patient in 3 player types: **Social, Competitive, Explorer**. <br>
+By collecting data from an educational diabetes game (**SUGARVITA**), we can profile a diabetic patient in 3 player types: **Social, Competitive, Explorer**. <br>
 Additionally, based on a patient's performance within the educational game, as well as a trivia mini-game, a **health literacy score** regarding diabetes is also obtained. <br>
 This project is ready to be running as a command-line tool, as well as it is web-server ready.
 
@@ -54,3 +54,30 @@ Open the Postman app: <br>
 
 ### Test functions
 Run `python -m pytest`
+
+## Features
+### Player Types (SugarVita)
+- Average score
+- Standard deviation of scores
+- Average duration of a game session
+- Standard deviation of game sessions
+- Number of times a 1 day scenario was simulated in a game session
+- Number of times a 2 day scenario was simulated in a game session
+- Number of times a 3 day scenario was simulated in a game session
+- Average number of days simulated in a game session
+- Standard deviation of the number of days simulated in a game session
+- Number of times a work-related path was chosen
+- Number of times a home-related path was chosen
+- Number of times an outdoors path was chosen
+
+
+### Health Literacy (SugarVita)
+- Average time in minutes to transition glucose values to normal or closest to normal ones
+- Average number of trips to hospital per game session
+- Average percentage in which glucose levels are in a good range
+
+
+### Health Literacy (Trivia)
+- Average number of times a hint is requested
+- Average number of times a question is answered correctly
+- Average number of times a question is answered incorrectly
