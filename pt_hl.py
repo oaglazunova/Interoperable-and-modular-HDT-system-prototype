@@ -12,15 +12,15 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
             "TRUE": 0,  # counts the number of times questions were answered with a hint
             "FALSE": 0,
         },  # counts the number of times questions were answered without a hint
-        "DIFFICULTY_LEVEL": {
-            "EASY": 0,  # counts the number of easy questions answered
-            "NORMAL": 0,  # counts the number of normal (intermediate) questions answered
-            "HARD": 0,
-        },  # counts the number of hard questions answered
+        #"DIFFICULTY_LEVEL": {
+        #    "EASY": 0,  # counts the number of easy questions answered
+        #    "NORMAL": 0,  # counts the number of normal (intermediate) questions answered
+        #    "HARD": 0,
+        #},  # counts the number of hard questions answered
         "NO_HINT_TYPE_OF_ANSWER": {
             "CORRECT": 0,  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered correctly
             "INCORRECT": 0,
-        },  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
+        }  # of the questions answered with no hint (since the ones with the hint are always correct) we count the ones that were answered incorrectly
     }
 
     parsed_response_trivia = json.loads(response_trivia.text)
@@ -51,16 +51,16 @@ def parse_json_trivia(response_trivia, id_latest_record_trivia) -> dict:
                 except Exception as e:
                     logger.warning('An exception occurred: %s', str(e), "\n")
 
-                try:
-                    if element["property"]["translationKey"] == "DIFFICULTY_LIKERT_3":
-                        if element["value"] == "-1":
-                            metrics["DIFFICULTY_LEVEL"]["EASY"] += 1
-                        elif element["value"] == "0":
-                            metrics["DIFFICULTY_LEVEL"]["NORMAL"] += 1
-                        elif element["value"] == "1":
-                            metrics["DIFFICULTY_LEVEL"]["HARD"] += 1
-                except Exception as e:
-                    logger.warning('An exception occurred: %s', str(e), "\n")
+                #try:
+                #    if element["property"]["translationKey"] == "DIFFICULTY_LIKERT_3":
+                #        if element["value"] == "-1":
+                #            metrics["DIFFICULTY_LEVEL"]["EASY"] += 1
+                #        elif element["value"] == "0":
+                #            metrics["DIFFICULTY_LEVEL"]["NORMAL"] += 1
+                #        elif element["value"] == "1":
+                #            metrics["DIFFICULTY_LEVEL"]["HARD"] += 1
+                #except Exception as e:
+                #    logger.warning('An exception occurred: %s', str(e), "\n")
 
     return metrics
 
@@ -527,9 +527,9 @@ def remove_nan(metrics) -> list:
 def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
     metrics_overview_hl_trivia = {
         "avg_hint": 0,
-        "avg_easy": 0,
-        "avg_normal": 0,
-        "avg_hard": 0,
+        #"avg_easy": 0,
+        #"avg_normal": 0,
+        #"avg_hard": 0,
         "avg_correct": 0,
         "avg_incorrect": 0,
     }
@@ -543,16 +543,16 @@ def manipulate_initial_metrics_trivia(metrics_cleaned) -> dict:
             metrics_overview_hl_trivia["avg_hint"] = (
                 metrics_cleaned["WITH_HINT"]["TRUE"] / total_trivia_answers
             )
-        if key == "DIFFICULTY_LEVEL":
-            metrics_overview_hl_trivia["avg_easy"] = (
-                metrics_cleaned["DIFFICULTY_LEVEL"]["EASY"] / total_trivia_answers
-            )
-            metrics_overview_hl_trivia["avg_normal"] = (
-                metrics_cleaned["DIFFICULTY_LEVEL"]["NORMAL"] / total_trivia_answers
-            )
-            metrics_overview_hl_trivia["avg_hard"] = (
-                metrics_cleaned["DIFFICULTY_LEVEL"]["HARD"] / total_trivia_answers
-            )
+        #if key == "DIFFICULTY_LEVEL":
+        #    metrics_overview_hl_trivia["avg_easy"] = (
+        #        metrics_cleaned["DIFFICULTY_LEVEL"]["EASY"] / total_trivia_answers
+        #    )
+        #    metrics_overview_hl_trivia["avg_normal"] = (
+        #        metrics_cleaned["DIFFICULTY_LEVEL"]["NORMAL"] / total_trivia_answers
+        #    )
+        #    metrics_overview_hl_trivia["avg_hard"] = (
+        #        metrics_cleaned["DIFFICULTY_LEVEL"]["HARD"] / total_trivia_answers
+        #    )
         if key == "NO_HINT_TYPE_OF_ANSWER":
             if metrics_cleaned["WITH_HINT"]["FALSE"] == 0:
                 metrics_overview_hl_trivia["avg_correct"] = 0
@@ -677,12 +677,9 @@ def calculate_score(
 
 def get_health_literacy_score_trivia(metrics_overview_hl_trivia_normalized) -> float:
     health_literacy_metrics_weights_trivia = {
-        "avg_hint": 0.15,
-        "avg_easy": 0.1,
-        "avg_normal": 0.2,
-        "avg_hard": 0.3,
-        "avg_correct": 0.35,
-        "avg_incorrect": -1,
+        "avg_hint": -0.15,
+        "avg_correct": 1,
+        "avg_incorrect": -0.85,
     }
 
     health_literacy_score_trivia = calculate_score(

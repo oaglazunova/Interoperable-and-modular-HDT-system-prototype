@@ -31,10 +31,10 @@ def get_scores(playerID):
         "health_literacy_score":{
             "domain": {
                 "name": "diabetes",
-                "score": health_literacy_score,
+                "score": health_literacy_score["Health Literacy"],
                 "sources": {
-                    "sugarvita": health_literacy_score_sugarvita,
-                    "trivia": health_literacy_score_trivia
+                    "sugarvita": health_literacy_score_sugarvita["Health Literacy Sugarvita"],
+                    "trivia": health_literacy_score_trivia["Health Literacy Trivia"]
                 }
             }
         }
