@@ -28,8 +28,15 @@ def get_scores(playerID):
 
     scores={
         "player_types_labels": player_types_labels,
-        "health_literacy_score_sugarvita": health_literacy_score_sugarvita,
-        "health_literacy_score_trivia": health_literacy_score_trivia,
-        "health_literacy_score": health_literacy_score
+        "health_literacy_score":{
+            "domain": {
+                "name": "diabetes",
+                "score": health_literacy_score,
+                "sources": {
+                    "sugarvita": health_literacy_score_sugarvita,
+                    "trivia": health_literacy_score_trivia
+                }
+            }
+        }
     }
     return jsonify(scores), 200
