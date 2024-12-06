@@ -1,14 +1,17 @@
 # Interoperable and Modular HDT System Prototype
 
 This project provides prototype of an interoperable and modular **Human Digital Twins (HDT)** system architecture.
-Here, interoperability refers to its capacity to access, synthesize and standardize health data from various applications/platforms like GameBus and Google Fit.
-These capabilities enable external model developers to easily locate and access the exact data they need for model building purposes.
-Hence, modularity refers to the systems capacity to support the open development, testing, and integration of various virtual twin models.
 
-This prototype establishes a foundation for future extension and improvement.
-Therefore, this public repository is meant to encourage further development of such systems.
+Interoperability refers to the system's ability to access, synthesize, and standardize health data from diverse applications and platforms such as GameBus and Google Fit. These capabilities allow external model developers to efficiently locate and utilize the exact data they need for building models.
 
-For more content
+Modularity refers to the system's capacity to support the open development, testing, and integration of various virtual twin models. This flexibility encourages collaboration and facilitates the extension of the system with new functionalities.
+
+This prototype establishes a solid foundation for future expansion and improvement. To foster further development, this public repository is intended to serve as a collaborative resource for researchers and developers interested in advancing such systems.
+
+For detailed information about the project, please refer to the associated thesis paper:
+[Thesis Paper (06-12-24 V2)](docs/Thesis%20paper%2006-12-24%20V2.pdf)
+
+The remainder of this README provides detailed information about the system components and instructions for deployment.
 
 ## Table of Contents
 - [System Architecture](#system-architecture)
@@ -44,7 +47,7 @@ For more content
   - `users.json`: Provides details about users, including their connected apps for each health domain and the associated authentication tokens.
 
 #### **`HDT_CORE_INFRASTRUCTURE` Subfolder**
-- **Purpose**: Handles data fetching, parsing, authentication, and API exposure.
+- **Purpose**: Handles data fetching, parsing, authentication, and API exposure (to be extended with more available data sources and API endpoints).
 - **Key Files**:
   - `auth.py`: Implements an authentication and authorization decorator based on API keys, user permissions, and required actions.
   - `GAMEBUS_DIABETES_fetch.py`: Fetches Trivia and SugarVita from the GameBus API.
@@ -63,13 +66,13 @@ For more content
       - `/get_health_literacy_diabetes`: Retrieves diabetes-related health literacy scores.
 
 #### **`Virtual_Twin_Models` Subfolder**
-- **Purpose**: Calculate health literacy and player type scores.
+- **Purpose**: Calculate health literacy and player type scores (to be extended with more diverse models).
 - **Key Files**:
   - `HDT_DIABETES_calculations.py`: Contains functions for metric manipulation, normalization, scoring, and player-type determination.
   - `HDT_DIABETES_model.py`: Orchestrates fetching data from APIs, calculating scores, and storing results in `diabetes_pt_hl_storage.json`.
 
 #### **`diabetes_pt_hl_storage.json`**
-- **Purpose**: Acts as persistent storage for the model results, including health literacy scores and player types.
+- **Purpose**: Acts as persistent storage for the model results, including health literacy scores and player types. (In the future, the collection of trained models and resulting outputs will be stored in the cloud, forming the main "Virtual Twin".)
 
 ---
 
@@ -78,7 +81,7 @@ For more content
 Full documentation for the **HDT API endpoints** is available through Swagger:
 [Swagger Documentation](https://pimvanvroonhoven.github.io/Interoperable-and-modular-HDT-system-prototype/)
 
-This documentation provides details on endpoint functionalities, inputs and outputs.
+
 ---
 
 ## Setup and Installation
