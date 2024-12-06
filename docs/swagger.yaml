@@ -2,8 +2,8 @@ openapi: 3.0.0
 info:
   title: HDT API Documentation
   description: >-
-    API documentation for the HDT system, providing endpoints for model and app
-    developers to access virtual twin data.
+    Documentation for the HDT API in the system described here: https://github.com/pimvanvroonhoven/Interoperable-and-modular-HDT-system-prototype 
+    This documentation provides details about the available endpoints.
   version: 1.0.0-oas3
 servers:
   - url: http://localhost:5000
