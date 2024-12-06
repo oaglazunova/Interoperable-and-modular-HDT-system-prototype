@@ -1,6 +1,0 @@
-The files in this folder have the goal to simulate new sugarvita data coming from GameBus.
-Since the data was not being posted in GameBus, we created 3 diferent json files.
-
-playthrough.json --> has the structure of a playthrough record coming from Gamebus. We changed the id of the record. however, for the id of the last record + 1.
-engagement.json --> has the structure of a engagement record coming from Gamebus. We changed the id of the record. however, for the id of the last record + 1.
-trivia.json --> has the structure of a trivia record coming from Gamebus. We kept the id of the last record. We only intended to test the data coming from sugarvita and not the trivia. This file could be ignored also, and instead, use the variable response_trivia again.
