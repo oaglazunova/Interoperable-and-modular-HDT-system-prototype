@@ -1,6 +1,14 @@
 # Interoperable and Modular HDT System Prototype
 
-Welcome to the **Interoperable and Modular HDT System Prototype**! This project provides a modular architecture for developing **Human Digital Twins (HDT)**, enabling integration of health data from multiple sources like GameBus and Google Fit. 
+This project provides prototype of an interoperable and modular **Human Digital Twins (HDT)** system architecture.
+Here, interoperability refers to its capacity to access, synthesize and standardize health data from various applications/platforms like GameBus and Google Fit.
+These capabilities enable external model developers to easily locate and access the exact data they need for model building purposes.
+Hence, modularity refers to the systems capacity to support the open development, testing, and integration of various virtual twin models.
+
+This prototype establishes a foundation for future extension and improvement.
+Therefore, this public repository is meant to encourage further development of such systems.
+
+For more content
 
 ## Table of Contents
 - [System Architecture](#system-architecture)
