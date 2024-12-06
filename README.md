@@ -8,8 +8,11 @@ Modularity refers to the system's capacity to support the open development, test
 
 This prototype establishes a solid foundation for future expansion and improvement. To foster further development, this public repository is intended to serve as a collaborative resource for researchers and developers interested in advancing such systems.
 
-For detailed information about the project, please refer to the associated thesis paper:
-[Thesis Paper (06-12-24 V2)](docs/Thesis%20paper%2006-12-24%20V2.pdf)
+For detailed information about the project, please refer to the associated master's thesis paper [Thesis Paper (06-12-24 V2)](docs/Thesis%20paper%2006-12-24%20V2.pdf), titled:
+
+**"Designing an Interoperable and Modular System Architecture to Support the Development of Human Digital Twins for Promoting Healthy Lifestyle Behaviors"**
+
+
 
 The remainder of this README provides detailed information about the system components and instructions for deployment.
 
