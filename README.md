@@ -1,6 +1,6 @@
 # Interoperable and Modular HDT System Prototype
 
-This project provides prototype of an interoperable and modular **Human Digital Twins (HDT)** system architecture.
+This project provides a prototype of an interoperable and modular **Human Digital Twins (HDT)** system architecture.
 
 Interoperability refers to the system's ability to access, synthesize, and standardize health data from diverse applications and platforms such as GameBus and Google Fit. These capabilities allow external model developers to efficiently locate and utilize the exact data they need for building models.
 
