@@ -11,7 +11,17 @@ def authenticate_and_authorize(external_parties, user_permissions, required_perm
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # Authentication
-            api_key = request.headers.get("X-API-KEY")  # Use the updated header key
+            # First try to get API key from Authorization header (Bearer token)
+            auth_header = request.headers.get("Authorization")
+            api_key = None
+
+            if auth_header and auth_header.startswith("Bearer "):
+                api_key = auth_header.split("Bearer ")[1].strip()
+
+            # If not found, try X-API-KEY header for backward compatibility
+            if not api_key:
+                api_key = request.headers.get("X-API-KEY")
+
             if not api_key:
                 logging.debug("API key is missing in the request.")
                 return jsonify({"error": "API key is missing"}), 401

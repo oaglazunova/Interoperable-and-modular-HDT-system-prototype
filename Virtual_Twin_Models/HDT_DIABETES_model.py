@@ -39,7 +39,8 @@ def save_json(data):
 
 # Fetch data from the API
 def fetch_data_from_api(api_url):
-    headers = {"X-API-KEY": MODEL_DEVELOPER_1_API_KEY}
+    # Use Authorization header with Bearer prefix as per API documentation
+    headers = {"Authorization": f"Bearer {MODEL_DEVELOPER_1_API_KEY}"}
     try:
         response = requests.get(api_url, headers=headers)
         response.raise_for_status()
@@ -134,4 +135,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

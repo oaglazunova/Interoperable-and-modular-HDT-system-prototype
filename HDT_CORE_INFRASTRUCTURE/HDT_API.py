@@ -6,6 +6,7 @@ from functools import wraps
 from config.config import load_external_parties, load_user_permissions
 import logging
 import json
+import os
 from HDT_CORE_INFRASTRUCTURE.auth import authenticate_and_authorize
 
 app = Flask(__name__)
@@ -15,7 +16,7 @@ external_parties = load_external_parties()
 user_permissions = load_user_permissions()
 
 # Load users from config/users.json
-with open('config/users.json') as f:
+with open(os.path.join('config', 'users.json')) as f:
     users = {user["user_id"]: user for user in json.load(f)["users"]}
 
 
@@ -34,11 +35,11 @@ def get_users_by_permission(client_id, required_permission):
 def get_connected_app_info(user_id, app_type):
     """
     Retrieve the connected application, player ID, and auth bearer token for a specific type of data.
-    
+
     Args:
         user_id (int): The ID of the user.
         app_type (str): The type of connected app data (e.g., "diabetes_data", "walk_data").
-    
+
     Returns:
         tuple: (connected_application, player_id, auth_bearer) or ("Unknown", None, None) if not found.
     """
@@ -355,7 +356,7 @@ def get_sugarvita_player_types():
 
         # Load diabetes_pt_hl_storage.json
         try:
-            with open("diabetes_pt_hl_storage.json", "r") as f:
+            with open(os.path.join(os.getcwd(), "diabetes_pt_hl_storage.json"), "r") as f:
                 storage_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logging.error(f"Error loading diabetes_pt_hl_storage.json: {e}")
@@ -406,7 +407,7 @@ def get_health_literacy_diabetes():
 
         # Load diabetes_pt_hl_storage.json
         try:
-            with open("diabetes_pt_hl_storage.json", "r") as f:
+            with open(os.path.join(os.getcwd(), "diabetes_pt_hl_storage.json"), "r") as f:
                 storage_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logging.error(f"Error loading diabetes_pt_hl_storage.json: {e}")
@@ -446,5 +447,3 @@ def get_health_literacy_diabetes():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
