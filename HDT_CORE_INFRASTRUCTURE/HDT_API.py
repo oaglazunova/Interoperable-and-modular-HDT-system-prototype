@@ -1,13 +1,31 @@
-from flask import Flask, jsonify, request, abort
-from HDT_CORE_INFRASTRUCTURE.GAMEBUS_DIABETES_fetch import fetch_trivia_data, fetch_sugarvita_data
-from HDT_CORE_INFRASTRUCTURE.GAMEBUS_WALK_fetch import fetch_walk_data
-from HDT_CORE_INFRASTRUCTURE.GOOGLE_FIT_WALK_fetch import fetch_google_fit_walk_data
+from flask import Flask, jsonify, request, abort, send_from_directory
 from functools import wraps
-from config.config import load_external_parties, load_user_permissions
 import logging
 import json
 import os
-from HDT_CORE_INFRASTRUCTURE.auth import authenticate_and_authorize
+import sys
+
+# Add the project root to the Python path if running the file directly
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Try both import styles to support running as a module or directly
+try:
+    # When run as a module
+    from HDT_CORE_INFRASTRUCTURE.GAMEBUS_DIABETES_fetch import fetch_trivia_data, fetch_sugarvita_data
+    from HDT_CORE_INFRASTRUCTURE.GAMEBUS_WALK_fetch import fetch_walk_data
+    from HDT_CORE_INFRASTRUCTURE.GOOGLE_FIT_WALK_fetch import fetch_google_fit_walk_data
+    from HDT_CORE_INFRASTRUCTURE.auth import authenticate_and_authorize
+    from config.config import load_external_parties, load_user_permissions
+except ImportError:
+    # When run directly
+    from GAMEBUS_DIABETES_fetch import fetch_trivia_data, fetch_sugarvita_data
+    from GAMEBUS_WALK_fetch import fetch_walk_data
+    from GOOGLE_FIT_WALK_fetch import fetch_google_fit_walk_data
+    from auth import authenticate_and_authorize
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from config.config import load_external_parties, load_user_permissions
 
 app = Flask(__name__)
 
@@ -15,8 +33,14 @@ app = Flask(__name__)
 external_parties = load_external_parties()
 user_permissions = load_user_permissions()
 
+# Define the path to the static directory
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+
 # Load users from config/users.json
-with open(os.path.join('config', 'users.json')) as f:
+# Use absolute path for users.json
+config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config'))
+users_file = os.path.join(config_dir, 'users.json')
+with open(users_file) as f:
     users = {user["user_id"]: user for user in json.load(f)["users"]}
 
 
@@ -356,7 +380,8 @@ def get_sugarvita_player_types():
 
         # Load diabetes_pt_hl_storage.json
         try:
-            with open(os.path.join(os.getcwd(), "diabetes_pt_hl_storage.json"), "r") as f:
+            storage_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "diabetes_pt_hl_storage.json"))
+            with open(storage_file, "r") as f:
                 storage_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logging.error(f"Error loading diabetes_pt_hl_storage.json: {e}")
@@ -407,7 +432,8 @@ def get_health_literacy_diabetes():
 
         # Load diabetes_pt_hl_storage.json
         try:
-            with open(os.path.join(os.getcwd(), "diabetes_pt_hl_storage.json"), "r") as f:
+            storage_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "diabetes_pt_hl_storage.json"))
+            with open(storage_file, "r") as f:
                 storage_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logging.error(f"Error loading diabetes_pt_hl_storage.json: {e}")
@@ -445,5 +471,15 @@ def get_health_literacy_diabetes():
 
 
 
+# Root endpoint to serve the index.html file
+@app.route('/')
+def index():
+    """
+    Serve the index.html file from the static directory.
+    """
+    return send_from_directory(static_dir, 'index.html')
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("Starting the HDT API server on http://localhost:5000")
+    print("Press Ctrl+C to stop the server")
+    app.run(debug=True, host='0.0.0.0')

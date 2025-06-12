@@ -6,14 +6,14 @@
                 {
                     "connected_application": "GameBus",
                     "player_id": 1,
-                    "auth_bearer": "auth bearer GameBus"
+                    "auth_bearer": "Z2FtZWJ1c19iYXNlX2FwcDppdkFxTFNSSnBRaDJ4QzE4OVYySEFvblVXWmd4UnVZQg=="
                 }
             ],
             "connected_apps_walk_data": [
                 {
                     "connected_application": "Google Fit",
                     "player_id": "me",
-                    "auth_bearer": "auth bearer Google Fit"
+                    "auth_bearer": "AIzaSyDL1FUvx766s8ZSBeM4B_rHyu7TO1pPt3g"
                 }
             ],
             "connected_apps_nutrition_data": [
