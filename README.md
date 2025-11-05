@@ -151,6 +151,14 @@ In the future, this file should be replaced by a proper ui with advanced authent
 
 2. The API will run on `http://localhost:5000`.
 
+3. In another terminal, start the MCP façade:
+`$env:MCP_TRANSPORT="streamable-http"
+python HDT_MCP/server.py`
+
+or use the inspector:
+`mcp dev HDT_MCP/server.py`
+
+
 ### Interacting with the API
 - Use tools like [Postman](https://www.postman.com/) to test the API endpoints.
 - Example endpoints:
